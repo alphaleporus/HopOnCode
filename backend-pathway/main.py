@@ -7,6 +7,10 @@ Environment (see .env.example):
     SIM_SPEEDUP              simulated seconds per real second (default 1)
     SCENARIO                 scripted demo file, or "none" (default data/scenarios/demo.json)
     RANDOM_INCIDENT_RATE     random incidents per truck per simulated hour (default 0)
+    FEED                     "internal" (built-in simulator, default) or "traccar" (positions forwarded by a
+                             Traccar telematics server to INTEGRATIONS_PORT; see infra/ and devices/)
+    INTEGRATIONS_PORT        Traccar forwarding endpoint port (default 8091)
+    DECISION_WEBHOOK_URL     optional: POST every operator decision here (e.g. carrier / TMS integration)
     ENABLE_SIMULATOR         "false" to run on real telemetry only
     ENABLE_HTTP_INGEST       "true" to accept POST /telemetry and /trucks (default true)
     INGEST_HOST/INGEST_PORT  HTTP ingest bind address (default 0.0.0.0:8090)
@@ -17,12 +21,15 @@ Environment (see .env.example):
 
 import json
 import os
+import threading
+import urllib.request
 
 import pathway as pw
 from dotenv import load_dotenv
 
 from connectors.command_connector import CommandSubject
 from connectors.fleet_simulator import FleetSimulator, RegistrySubject, TelemetrySubject
+from connectors.traccar import TraccarSubject
 from core.config import DecisionConfig
 from core.models import contract_from_json
 from llm.explainer import build_explainer
@@ -56,7 +63,17 @@ def main():
     # ---- Inputs --------------------------------------------------------------------------
     telemetry_parts, registry_parts = [], []
     sim = None
-    if env_bool("ENABLE_SIMULATOR", True):
+    feed = os.getenv("FEED", "internal").lower()
+    hub_ref = {}  # the hub is created later; Traccar events are routed to it once it exists
+
+    if feed == "traccar":
+        port = int(os.getenv("INTEGRATIONS_PORT", "8091"))
+        traccar = TraccarSubject(port=port, on_event=lambda ev: hub_ref.get("hub") and hub_ref["hub"].external_event(ev))
+        telemetry_parts.append(pw.io.python.read(traccar, schema=TelemetrySchema, autocommit_duration_ms=500,
+                                                 name="traccar_positions"))
+        print(f"🛰  Feed: Traccar telematics platform (forwarding to :{port})")
+
+    if env_bool("ENABLE_SIMULATOR", feed == "internal"):
         scenario_path = os.getenv("SCENARIO", "data/scenarios/demo.json")
         scenario = json.load(open(scenario_path)) if scenario_path != "none" and os.path.exists(scenario_path) else []
         contracts_dir = os.getenv("CONTRACTS_DIR", "data/contracts")
@@ -115,9 +132,22 @@ def main():
                         contracts_dir=os.getenv("CONTRACTS_DIR", "data/contracts")), cfg, explainer)
 
     # ---- Outputs -------------------------------------------------------------------------
+    webhook = os.getenv("DECISION_WEBHOOK_URL", "")
+
+    def post_webhook(payload: dict):
+        try:
+            req = urllib.request.Request(webhook, data=json.dumps(payload).encode(), method="POST",
+                                         headers={"Content-Type": "application/json"})
+            urllib.request.urlopen(req, timeout=5).read()
+        except Exception as e:
+            print(f"⚠️  Decision webhook failed: {e}")
+
     def on_command(cmd: dict):
         option = cmd.pop("_option", None)
         command_subject.push(cmd)
+        if webhook:
+            # Decisions flow back out to the carrier / order system
+            threading.Thread(target=post_webhook, args=({**cmd, "option": option},), daemon=True).start()
         if sim and cmd["action"] == "execute" and option:
             handover_min = option["handover_hours"] * 60
             sim.dispatch_relief(cmd["truck_id"], pickup_eta_min=handover_min, transfer_min=0,
@@ -127,6 +157,7 @@ def main():
 
     hub = RealtimeHub(host=os.getenv("WEBSOCKET_HOST", "localhost"), port=int(os.getenv("WEBSOCKET_PORT", "8765")),
                       on_command=on_command)
+    hub_ref["hub"] = hub
     hub.ai_available = explainer is not None
     if sim and env_bool("DEMO_CONTROLS", True):
         hub.on_demo = lambda action: sim.reset() if action == "reset" else sim.trigger_breakdown()

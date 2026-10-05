@@ -1,0 +1,22 @@
+# Local telematics platform for FleetFusion.
+#   docker compose -f infra/docker-compose.yml up -d
+# Traccar web UI: http://localhost:8082 (create the admin account on first visit)
+# Devices report via the OsmAnd HTTP protocol on port 5055.
+services:
+  traccar:
+    image: traccar/traccar:6.16.0
+    container_name: fleetfusion-traccar
+    restart: unless-stopped
+    ports:
+      - "8082:8082"   # web UI + REST API
+      - "5055:5055"   # OsmAnd protocol (HTTP device reports)
+    volumes:
+      - ./traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - traccar-data:/opt/traccar/data
+      - traccar-logs:/opt/traccar/logs
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  traccar-data:
+  traccar-logs:

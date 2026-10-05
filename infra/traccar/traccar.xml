@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM 'http://java.sun.com/dtd/properties.dtd'>
+<!--
+  Traccar (open-source GPS tracking platform) configured as FleetFusion's telematics source.
+  Devices report to Traccar over standard protocols; Traccar forwards every position and event
+  to FleetFusion as JSON. Reference: https://www.traccar.org/configuration-file/
+-->
+<properties>
+    <entry key='database.driver'>org.h2.Driver</entry>
+    <entry key='database.url'>jdbc:h2:./data/database</entry>
+    <entry key='database.user'>sa</entry>
+    <entry key='database.password' />
+
+    <!-- Demo fleet devices register themselves on first report -->
+    <entry key='database.registerUnknown'>true</entry>
+    <!-- Default pattern rejects hyphens; allow fleet IDs like TRK-402 -->
+    <entry key='database.registerUnknown.regex'>[\w-]{2,32}</entry>
+
+    <!-- Forward processed positions and generated events (alarms, ignition, offline) to FleetFusion -->
+    <entry key='forward.type'>json</entry>
+    <entry key='forward.url'>http://host.docker.internal:8091/integrations/traccar/positions</entry>
+    <entry key='event.forward.type'>json</entry>
+    <entry key='event.forward.url'>http://host.docker.internal:8091/integrations/traccar/events</entry>
+
+    <!-- A device silent for this long is marked unknown (demo value; production ~600) -->
+    <entry key='status.timeout'>60</entry>
+</properties>

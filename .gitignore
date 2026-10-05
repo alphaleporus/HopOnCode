@@ -102,3 +102,7 @@ temp/
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Raw third-party datasets (contain personal data); commit only derived, anonymised files
+backend-pathway/data/external/
+backend-pathway/output/

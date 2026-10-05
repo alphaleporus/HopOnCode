@@ -29,8 +29,8 @@ def _run(commands, extra_telemetry=()):
         *extra_telemetry,
     ])
     registry = pw.debug.table_from_rows(RegistrySchema, [
-        ("A", "Ann", "CNT-2024-001", 120000.0, ROUTE, 68.0),
-        ("B", "Bob", "CNT-2024-001", 120000.0, ROUTE, 66.0),
+        ("A", "Ann", "CNT-2024-001", 120000.0, ROUTE, 68.0, 0),
+        ("B", "Bob", "CNT-2024-001", 120000.0, ROUTE, 66.0, 0),
     ])
     cmds = pw.debug.table_from_rows(CommandSchema, commands) if commands else \
         pw.Table.empty(**CommandSchema.typehints())

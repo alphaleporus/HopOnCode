@@ -1,0 +1,146 @@
+[
+ {
+  "truck_id": "TRK-101",
+  "lane_id": "L01",
+  "contract_id": "GEN-L01",
+  "vehicle_type": "32 FT Multi-Axle 14MT - HCV",
+  "cargo_value": 4000000,
+  "cruise_kmh": 52,
+  "start_progress": 0.21
+ },
+ {
+  "truck_id": "TRK-102",
+  "lane_id": "L02",
+  "contract_id": "GEN-L02",
+  "vehicle_type": "32 FT Multi-Axle 14MT - HCV",
+  "cargo_value": 4000000,
+  "cruise_kmh": 52,
+  "start_progress": 0.13
+ },
+ {
+  "truck_id": "TRK-103",
+  "lane_id": "L03",
+  "contract_id": "GEN-L03",
+  "vehicle_type": "19 FT OPEN BODY 8 MT",
+  "cargo_value": 1500000,
+  "cruise_kmh": 52,
+  "start_progress": 0.38
+ },
+ {
+  "truck_id": "TRK-104",
+  "lane_id": "L04",
+  "contract_id": "GEN-L04",
+  "vehicle_type": "24 FT SXL Container",
+  "cargo_value": 2500000,
+  "cruise_kmh": 52,
+  "start_progress": 0.09
+ },
+ {
+  "truck_id": "TRK-105",
+  "lane_id": "L05",
+  "contract_id": "GEN-L05",
+  "vehicle_type": "32 FT Multi-Axle 14MT - HCV",
+  "cargo_value": 4000000,
+  "cruise_kmh": 52,
+  "start_progress": 0.32
+ },
+ {
+  "truck_id": "TRK-106",
+  "lane_id": "L06",
+  "contract_id": "GEN-L06",
+  "vehicle_type": "19 FT Open 7MT - MCV",
+  "cargo_value": 1500000,
+  "cruise_kmh": 52,
+  "start_progress": 0.23
+ },
+ {
+  "truck_id": "TRK-107",
+  "lane_id": "L07",
+  "contract_id": "GEN-L07",
+  "vehicle_type": "40 FT 3XL Trailer 35MT",
+  "cargo_value": 6000000,
+  "cruise_kmh": 45,
+  "start_progress": 0.08
+ },
+ {
+  "truck_id": "TRK-108",
+  "lane_id": "L08",
+  "contract_id": "GEN-L08",
+  "vehicle_type": "1.5 MT Pickup (Open Body)",
+  "cargo_value": 2500000,
+  "cruise_kmh": 52,
+  "start_progress": 0.3
+ },
+ {
+  "truck_id": "TRK-109",
+  "lane_id": "L09",
+  "contract_id": "GEN-L09",
+  "vehicle_type": "40 FT 3XL Trailer 35MT",
+  "cargo_value": 6000000,
+  "cruise_kmh": 45,
+  "start_progress": 0.07
+ },
+ {
+  "truck_id": "TRK-110",
+  "lane_id": "L10",
+  "contract_id": "GEN-L10",
+  "vehicle_type": "1.5 MT Pickup (Open Body)",
+  "cargo_value": 2500000,
+  "cruise_kmh": 52,
+  "start_progress": 0.27
+ },
+ {
+  "truck_id": "TRK-111",
+  "lane_id": "L11",
+  "contract_id": "GEN-L11",
+  "vehicle_type": "32 FT Multi-Axle 14MT - HCV",
+  "cargo_value": 4000000,
+  "cruise_kmh": 52,
+  "start_progress": 0.08
+ },
+ {
+  "truck_id": "TRK-112",
+  "lane_id": "L12",
+  "contract_id": "GEN-L12",
+  "vehicle_type": "32 FT Multi-Axle 14MT - HCV",
+  "cargo_value": 4000000,
+  "cruise_kmh": 52,
+  "start_progress": 0.1
+ },
+ {
+  "truck_id": "TRK-113",
+  "lane_id": "L13",
+  "contract_id": "GEN-L13",
+  "vehicle_type": "32 FT Multi-Axle 14MT - HCV",
+  "cargo_value": 4000000,
+  "cruise_kmh": 52,
+  "start_progress": 0.26
+ },
+ {
+  "truck_id": "TRK-114",
+  "lane_id": "L14",
+  "contract_id": "GEN-L14",
+  "vehicle_type": "32 FT Multi-Axle 14MT - HCV",
+  "cargo_value": 4000000,
+  "cruise_kmh": 52,
+  "start_progress": 0.46
+ },
+ {
+  "truck_id": "TRK-115",
+  "lane_id": "L15",
+  "contract_id": "GEN-L15",
+  "vehicle_type": "32 FT Multi-Axle 14MT - HCV",
+  "cargo_value": 4000000,
+  "cruise_kmh": 52,
+  "start_progress": 0.11
+ },
+ {
+  "truck_id": "TRK-116",
+  "lane_id": "L16",
+  "contract_id": "GEN-L16",
+  "vehicle_type": "22 FT Taurus Open 16MT - HCV",
+  "cargo_value": 2500000,
+  "cruise_kmh": 52,
+  "start_progress": 0.16
+ }
+]

@@ -37,6 +37,11 @@ if pgrep -f "python main.py" > /dev/null 2>&1; then
     pkill -f "python main.py" || pkill -9 -f "python main.py" || true
 fi
 
+if pgrep -f "devices/fleet_devices.py" > /dev/null 2>&1; then
+    echo -e "  ${GREEN}✓${NC} Stopping simulated GPS trackers..."
+    pkill -f "devices/fleet_devices.py" || true
+fi
+
 if pgrep -f "next dev" > /dev/null 2>&1; then
     echo -e "  ${GREEN}✓${NC} Killing Next.js frontend..."
     pkill -f "next dev" || pkill -9 -f "next dev" || true

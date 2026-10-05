@@ -97,3 +97,40 @@ P1: verify Ollama end to end; auth on WS/ingest; persistence; OSRM self-host; ge
 
 ## 8. Open questions to the user (asked after judging round 1)
 See the chat; record answers here when received.
+
+## 9. Answers after judging round 1 + progress (Traccar build)
+Answers: mock host dropped; integrate with a **real telematics platform** instead. Use an open dataset
+(fallback: generated). No real fleet contacts. UI: use the brand pack (light, Paper/Ink/Cobalt). Hidden backend
+command as demo safety net. Judge wants to **trigger a critical incident by manipulating the backend** = send
+data at the data layer and watch the dashboard react (no UI button).
+
+Done so far:
+- **Traccar 6.16.0** in Docker via `infra/traccar.sh up` (no compose plugin on this Mac; colima). Config
+  `infra/traccar/traccar.xml`: registerUnknown + regex `[\w-]{2,32}` (default regex rejects hyphens),
+  JSON position + event forwarding to `host.docker.internal:8091/integrations/traccar/*`, status.timeout 60.
+- **Dataset**: Kaggle "Delivery truck trips data" (CC BY-SA 3.0, 6,880 real trips, auto supply chain,
+  63% flagged delayed). Raw xlsx in `backend-pathway/data/external/` (gitignored: has driver phones).
+  `scripts/build_fleet_dataset.py` → `data/fleet/{lanes,fleet,stats}.json` + `data/contracts/GEN-L*.json`.
+  Only reliable fields used (timestamps unreliable). Lanes validated: OSRM road km must be 0.7–1.45× stated km
+  (8 rejected for bad coordinates). Customers anonymised to sectors; plates → TRK-101..116.
+- **Connector** `connectors/traccar.py` (own HTTP server :8091, queue → Pathway; FastHTTPServer skips
+  reverse-DNS which hangs on macOS). `FEED=traccar` + `ENABLE_SIMULATOR=false` in main.py.
+  Registry now carries `trip_started_at` (trip start comes from the order system).
+- **Devices** `devices/fleet_devices.py`: 16 trackers on real lanes at 30×, OsmAnd reports to Traccar,
+  incidents as machine signals, trip re-sync every 30 s, control port 9099 (`scripts/inject.py`),
+  decision webhook `/decisions` (DECISION_WEBHOOK_URL) resumes cargo after relief handover.
+- Verified: inject → Traccar → FF shows delayed → breakdown (telematics) + Traccar alarm events.
+
+Update (verified): full loop works via Traccar: inject → EXECUTE → approve → resolved → webhook → relief
+resumes cargo; impact recorded. Flicker fixed by persisting the device sim clock (output/.device_clock).
+Automotive contracts use tight JIT windows (road_km/45 + 1 h). Contract hot-reload confirmed live.
+start-demo.sh auto-selects Traccar mode when Docker/colima works (FEED=internal forces the old simulator);
+cleanup stops trackers. 36 tests. Ollama is now installed on the dev Mac (LLM path still to verify).
+
+Open issues / next (superseded items marked):
+- (fixed) Status flapped once ("back on schedule" between two breakdown signals) during the Traccar test; investigate
+  (possibly stale/out-of-order positions after process restarts; sim clocks restart at wall time).
+- Inject now prefers automotive + shortest lane (least slack) so a breakdown is actually critical; re-verify
+  the full execute → webhook → resume loop.
+- Wire start-demo.sh for Traccar mode (Traccar + devices + backend), update .env.example (FEED, DECISION_WEBHOOK_URL).
+- Then: impact comparison (with vs without FF using 63% baseline) and UI overhaul with the brand pack.

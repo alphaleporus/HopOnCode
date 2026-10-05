@@ -1,0 +1,44 @@
+{
+  "contract_id": "GEN-L10",
+  "client": "Automotive customer B",
+  "route": "Naickenpalayam, Coimbatore to Kamarajnagar, Tiruvallur",
+  "currency": "INR",
+  "cargo_value": 2500000,
+  "cargo": {
+    "type": "Auto Parts (automotive)"
+  },
+  "sla_hours": 13.0,
+  "grace_minutes": 15,
+  "penalty_per_hour": 20000,
+  "max_penalty": 100000,
+  "force_majeure": [
+    "weather",
+    "natural_disaster",
+    "government_closure"
+  ],
+  "source": "Generated from real lane distance (Kaggle 'Delivery truck trips data', CC BY-SA 3.0). Penalty rates and cargo values are illustrative; relief prices use published ₹45-85/km rates.",
+  "terms": "FREIGHT SERVICE AGREEMENT\n\nClient: Automotive customer B\nLane: Naickenpalayam, Coimbatore to Kamarajnagar, Tiruvallur (523 km)\nDelivery window: 13.0 hours from dispatch (15 minute grace)\n\nPENALTY: Rs 20,000 per hour of delay, capped at Rs 100,000.\n\nFORCE MAJEURE: weather, natural disasters and government-mandated closures exempt from penalties.",
+  "spot_market_alternatives": [
+    {
+      "provider": "Highway Freight Co",
+      "cost": 22400.0,
+      "pickup_eta_minutes": 60,
+      "reliability": 0.93,
+      "speed_kmh": 48
+    },
+    {
+      "provider": "SwiftLink Logistics",
+      "cost": 26900.0,
+      "pickup_eta_minutes": 40,
+      "reliability": 0.96,
+      "speed_kmh": 52
+    },
+    {
+      "provider": "ExpressRelief Carriers",
+      "cost": 32500.0,
+      "pickup_eta_minutes": 25,
+      "reliability": 0.9,
+      "speed_kmh": 52
+    }
+  ]
+}

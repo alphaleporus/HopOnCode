@@ -195,19 +195,53 @@ fi
 # Kill any existing FleetFusion processes
 print_step "Cleaning up any existing FleetFusion processes..."
 pkill -f "python main.py" 2>/dev/null || true
+pkill -f "devices/fleet_devices.py" 2>/dev/null || true
 pkill -f "next dev" 2>/dev/null || true
 sleep 2
 
 print_step "Starting Backend Services..."
 echo ""
 
+# Telematics feed: real Traccar platform in Docker if available, else the built-in simulator.
+# Force the built-in simulator with: FEED=internal ./start-demo.sh
+FEED="${FEED:-auto}"
+if [ "$FEED" = "auto" ]; then
+    FEED=internal
+    if command -v docker >/dev/null 2>&1; then
+        if ! docker info >/dev/null 2>&1 && command -v colima >/dev/null 2>&1; then
+            print_info "Starting Docker runtime (colima)..."
+            colima start >/dev/null 2>&1 || true
+        fi
+        if docker info >/dev/null 2>&1; then FEED=traccar; fi
+    fi
+fi
+
+if [ "$FEED" = "traccar" ]; then
+    print_info "Starting Traccar telematics platform (Docker)..."
+    ./infra/traccar.sh up
+    sleep 5
+fi
+
 # Start backend (Pathway pipeline + realtime hub in one process)
-print_info "Starting FleetFusion backend (Pathway + realtime hub)..."
+print_info "Starting FleetFusion backend (feed: $FEED)..."
 cd backend-pathway
 source venv-pathway/bin/activate
-python main.py > ../logs/backend.log 2>&1 &
+if [ "$FEED" = "traccar" ]; then
+    FEED=traccar ENABLE_SIMULATOR=false DEMO_CONTROLS=false \
+        DECISION_WEBHOOK_URL=http://127.0.0.1:9099/decisions \
+        python main.py > ../logs/backend.log 2>&1 &
+else
+    FEED=internal python main.py > ../logs/backend.log 2>&1 &
+fi
 BACKEND_PID=$!
 echo $BACKEND_PID >> "../$PIDFILE"
+if [ "$FEED" = "traccar" ]; then
+    sleep 5
+    # Simulated GPS trackers on real lanes, reporting to Traccar like hardware would
+    python devices/fleet_devices.py > ../logs/devices.log 2>&1 &
+    DEVICES_PID=$!
+    echo $DEVICES_PID >> "../$PIDFILE"
+fi
 cd ..
 
 sleep 4
@@ -261,7 +295,12 @@ echo "   • Backend:         ${YELLOW}logs/backend.log${NC}"
 echo "   • Frontend:        ${YELLOW}logs/frontend.log${NC}"
 echo ""
 print_info "Running Processes:"
-echo "   • Backend (Pathway + hub): PID $BACKEND_PID"
+echo "   • Backend (Pathway + hub): PID $BACKEND_PID (feed: $FEED)"
+if [ "$FEED" = "traccar" ]; then
+echo "   • GPS trackers (simulated): PID $DEVICES_PID"
+echo "   • Traccar web map:         ${CYAN}http://localhost:8082${NC}"
+echo "   • Cause an incident:       ${CYAN}cd backend-pathway && venv-pathway/bin/python scripts/inject.py breakdown${NC}"
+fi
 echo "   • Next.js Frontend:        PID $FRONTEND_PID"
 echo ""
 print_warning "Press ${RED}Ctrl+C${NC} to stop all services"

@@ -1,0 +1,44 @@
+{
+  "contract_id": "GEN-L15",
+  "client": "Engineering & construction customer B",
+  "route": "Hosur to Chennai",
+  "currency": "INR",
+  "cargo_value": 4000000,
+  "cargo": {
+    "type": "Auto Parts (engineering & construction)"
+  },
+  "sla_hours": 10.5,
+  "grace_minutes": 30,
+  "penalty_per_hour": 6000,
+  "max_penalty": 40000,
+  "force_majeure": [
+    "weather",
+    "natural_disaster",
+    "government_closure"
+  ],
+  "source": "Generated from real lane distance (Kaggle 'Delivery truck trips data', CC BY-SA 3.0). Penalty rates and cargo values are illustrative; relief prices use published ₹45-85/km rates.",
+  "terms": "FREIGHT SERVICE AGREEMENT\n\nClient: Engineering & construction customer B\nLane: Hosur to Chennai (336 km)\nDelivery window: 10.5 hours from dispatch (30 minute grace)\n\nPENALTY: Rs 6,000 per hour of delay, capped at Rs 40,000.\n\nFORCE MAJEURE: weather, natural disasters and government-mandated closures exempt from penalties.",
+  "spot_market_alternatives": [
+    {
+      "provider": "Highway Freight Co",
+      "cost": 14400.0,
+      "pickup_eta_minutes": 60,
+      "reliability": 0.93,
+      "speed_kmh": 48
+    },
+    {
+      "provider": "SwiftLink Logistics",
+      "cost": 17300.0,
+      "pickup_eta_minutes": 40,
+      "reliability": 0.96,
+      "speed_kmh": 52
+    },
+    {
+      "provider": "ExpressRelief Carriers",
+      "cost": 20900.0,
+      "pickup_eta_minutes": 25,
+      "reliability": 0.9,
+      "speed_kmh": 52
+    }
+  ]
+}

@@ -296,6 +296,20 @@ class RealtimeHub:
             self._dirty = True
         return {"type": "demo_ack", "action": action, "truckId": result, "timestamp": _iso(time.time())}
 
+    def external_event(self, ev: Dict):
+        """Notable events raised by the telematics platform (e.g. Traccar alarms, offline devices)."""
+        etype, tid = ev.get("type", ""), ev.get("truck_id", "")
+        text = {
+            "alarm": f"🛰 Traccar alarm on {tid}: {ev.get('detail') or 'unspecified'}",
+            "deviceOffline": f"🛰 Traccar: {tid} went offline",
+            "deviceUnknown": f"🛰 Traccar: {tid} status unknown (no data)",
+            "deviceOnline": f"🛰 Traccar: {tid} back online",
+        }.get(etype)
+        if text:
+            with self.lock:
+                self._event("sensor", text, "warning" if etype != "deviceOnline" else "info")
+                self._dirty = True
+
     def _check_signal_lost(self):
         """Flag trucks whose tracker has gone quiet; emit events on transitions."""
         now = time.time()

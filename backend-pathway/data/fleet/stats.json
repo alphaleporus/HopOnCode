@@ -1,0 +1,53 @@
+{
+ "source": "Delivery truck trips data (Ram Thiagu, Kaggle), CC BY-SA 3.0",
+ "url": "https://www.kaggle.com/datasets/ramakrishnanthiyagu/delivery-truck-trips-data",
+ "trips_total": 6880,
+ "trips_flagged_delayed": 4342,
+ "trips_flagged_ontime": 2548,
+ "delayed_share": 0.631,
+ "lanes_selected": 16,
+ "selection": "South India, 60-700 km, origin != destination, most frequent lanes",
+ "lanes_rejected_bad_coordinates": [
+  {
+   "lane": "Manali, Tiruvallur \u2192 Rayapudupakkam, Villupuram",
+   "dataset_km": 177.0,
+   "road_km": 632.2
+  },
+  {
+   "lane": "Kollur, Medak \u2192 Lakdaram, Medak",
+   "dataset_km": 70.0,
+   "road_km": 351.5
+  },
+  {
+   "lane": "Manali, Tiruvallur \u2192 Thaiyur, Kanchipuram",
+   "dataset_km": 90.0,
+   "road_km": 508.9
+  },
+  {
+   "lane": "Kollur, Medak \u2192 Topgonda, Medak",
+   "dataset_km": 65.0,
+   "road_km": 366.3
+  },
+  {
+   "lane": "Gopavarapugudem, Krishna \u2192 Apsp Colony, Guntur",
+   "dataset_km": 72.0,
+   "road_km": 45.1
+  },
+  {
+   "lane": "Manali, Tiruvallur \u2192 St.Thomas Mount, Kanchipuram",
+   "dataset_km": 90.0,
+   "road_km": 484.9
+  },
+  {
+   "lane": "Hosur \u2192 Chennai",
+   "dataset_km": 570.0,
+   "road_km": 320.7
+  },
+  {
+   "lane": "Hosur \u2192 Chennai",
+   "dataset_km": 560.0,
+   "road_km": 339.2
+  }
+ ],
+ "notes": "Timestamps are not used: actual_eta reflects system closure, not true arrival."
+}

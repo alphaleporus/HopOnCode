@@ -48,6 +48,8 @@ class RegistrySchema(pw.Schema):
     cargo_value: float
     route: str  # JSON [[lon, lat], ...]
     nominal_cruise_kmh: float = pw.column_definition(default_value=60.0)
+    # Trip start comes from the order system; trackers don't know about trips
+    trip_started_at: int = pw.column_definition(default_value=0)
 
 
 class CommandSchema(pw.Schema):
@@ -119,7 +121,8 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
 
     @pw.udf
     def assess_udf(truck_id: str, st: Any, route: str, contract_raw: str, nominal_kmh: float,
-                   override_incident_id: Optional[str], override_label: Optional[str]) -> pw.Json:
+                   registry_trip_start: int, override_incident_id: Optional[str],
+                   override_label: Optional[str]) -> pw.Json:
         from core.models import contract_from_json
         s = TruckState(*st)
         # A dispatcher classification applies only to the stop it was made for
@@ -128,7 +131,7 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
         incident = override_label if overridden else s.incident
         snap = TruckSnapshot(
             truck_id=truck_id, lon=s.lon, lat=s.lat, speed_kmh=s.speed_kmh, cruise_kmh=s.cruise_kmh,
-            now=s.ts, trip_started_at=s.trip_started_at, stopped_since=s.stopped_since,
+            now=s.ts, trip_started_at=registry_trip_start or s.trip_started_at, stopped_since=s.stopped_since,
             incident=incident, route=_route(route), nominal_cruise_kmh=nominal_kmh,
         )
         out = assess(snap, contract_from_json(contract_raw), cfg)
@@ -168,6 +171,7 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
         cargo_value=pw.reducers.latest(pw.this.cargo_value),
         route=pw.reducers.latest(pw.this.route),
         nominal_cruise_kmh=pw.reducers.latest(pw.this.nominal_cruise_kmh),
+        trip_started_at=pw.reducers.latest(pw.this.trip_started_at),
     )
 
     contracts = contracts if contracts is not None else load_contracts(sources.contracts_dir)
@@ -175,7 +179,7 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
     # 3. Join live state with truck metadata and contract terms, then assess
     tracked = state.join(registry, state.truck_id == registry.truck_id).select(
         state.truck_id, state.st, registry.driver, registry.contract_id, registry.cargo_value,
-        registry.route, registry.nominal_cruise_kmh)
+        registry.route, registry.nominal_cruise_kmh, registry_trip_start=registry.trip_started_at)
     tracked = tracked.join(contracts, tracked.contract_id == contracts.contract_id).select(
         *pw.left, contract_raw=pw.right.raw, terms=pw.right.terms)
     # Dispatcher classifications (office staff, never the driver) override inferred incident types
@@ -190,7 +194,8 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
         pw.this.truck_id, pw.this.driver, pw.this.contract_id, pw.this.cargo_value, pw.this.route,
         pw.this.terms,
         assessment=assess_udf(pw.this.truck_id, pw.this.st, pw.this.route, pw.this.contract_raw,
-                              pw.this.nominal_cruise_kmh, pw.this.override_incident_id, pw.this.override_label),
+                              pw.this.nominal_cruise_kmh, pw.this.registry_trip_start, pw.this.override_incident_id,
+                              pw.this.override_label),
     )
 
     # 4. Overlay operator decisions
