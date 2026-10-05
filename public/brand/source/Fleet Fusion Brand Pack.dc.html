@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F5F1;color:#14171F;font-family:'Archivo',sans-serif;-webkit-font-smoothing:antialiased}
+a{color:#2F4FE0;text-decoration:none}a:hover{color:#14171F}
+*{box-sizing:border-box}
+</style>
+</helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160"><rect width="160" height="160" fill="#2F4FE0"></rect><g transform="translate(48 48) scale(1.333)" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#FFFFFF"></circle></g></svg></template>
+
+<div style="max-width:1200px;margin:0 auto;padding:0 32px 120px">
+
+<header style="display:flex;justify-content:space-between;align-items:center;padding:28px 0;border-bottom:1px solid #DCDBD4;font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:#5A5F6B;gap:16px;flex-wrap:wrap">
+  <span>Fleet Fusion — Brand Pack v1.0</span>
+  <nav style="display:flex;gap:20px;flex-wrap:wrap"><a href="#logo">Logo</a><a href="#specs">Specs</a><a href="#favicon">Favicon</a><a href="#color">Color</a><a href="#type">Type</a><a href="#apply">Applications</a><a href="#voice">Voice</a><a href="#assets">Assets</a></nav>
+</header>
+
+<section data-screen-label="01 Cover" style="padding:120px 0 100px;display:grid;gap:56px">
+  <div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap">
+    <svg viewBox="0 0 48 48" width="120" height="120" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg>
+    <div style="font-size:clamp(56px,9vw,120px);font-weight:700;font-stretch:115%;letter-spacing:-.035em;line-height:.9">Fleet Fusion</div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:40px;align-items:end">
+    <p style="margin:0;font-size:clamp(26px,3vw,38px);font-weight:500;font-stretch:105%;line-height:1.15;letter-spacing:-.015em;text-wrap:pretty;max-width:620px">Every late load, spotted, priced and fixed the cheapest way.</p>
+    <p style="margin:0;font-size:17px;line-height:1.55;color:#4A4F5C;max-width:440px;text-wrap:pretty">Fleet Fusion is a smart assistant for trucking companies. It spots when a delivery is running late, works out how much money that lateness will cost, and suggests the cheapest way to fix it.</p>
+  </div>
+</section>
+
+<section id="logo" data-screen-label="02 Logo" style="padding:80px 0;border-top:1px solid #DCDBD4;display:grid;gap:40px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap">
+    <h2 style="margin:0;font-size:44px;font-weight:700;font-stretch:112%;letter-spacing:-.025em">01 Logo</h2>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5A5F6B">Mark + wordmark</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,520px),1fr));gap:20px">
+    <div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;min-height:340px;display:grid;place-items:center;position:relative;padding:40px">
+      <sc-if value="{{ showConstruction }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;inset:0;background-image:linear-gradient(#2F4FE01A 1px,transparent 1px),linear-gradient(90deg,#2F4FE01A 1px,transparent 1px);background-size:24px 24px;border-radius:6px"></div>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:18px;position:relative">
+        <svg viewBox="0 0 48 48" width="72" height="72" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg>
+        <span style="font-size:52px;font-weight:700;font-stretch:115%;letter-spacing:-.035em">Fleet Fusion</span>
+      </div>
+      <span style="position:absolute;left:20px;bottom:16px;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Primary lockup</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="background:#2F4FE0;border-radius:6px;display:grid;place-items:center;min-height:160px;position:relative">
+        <svg viewBox="0 0 48 48" width="72" height="72" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#FFFFFF"></circle></svg>
+        <span style="position:absolute;left:16px;bottom:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#FFFFFF">On Cobalt</span>
+      </div>
+      <div style="background:#14171F;border-radius:6px;display:grid;place-items:center;min-height:160px;position:relative">
+        <svg viewBox="0 0 48 48" width="72" height="72" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#6F86FF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#F6F5F1" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#6F86FF"></circle></svg>
+        <span style="position:absolute;left:16px;bottom:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#C9CBD2">On Ink</span>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;display:flex;align-items:center;justify-content:center;gap:10px;min-height:160px;position:relative">
+        <svg viewBox="0 0 48 48" width="28" height="28" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#14171F"></circle></svg>
+        <span style="font-size:22px;font-weight:700;font-stretch:115%;letter-spacing:-.03em">Fleet Fusion</span>
+        <span style="position:absolute;left:16px;bottom:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">One-colour</span>
+      </div>
+      <div style="background:#E6E9F5;border-radius:6px;display:grid;place-items:center;min-height:160px;position:relative">
+        <div style="width:72px;height:72px;border-radius:18px;background:#2F4FE0;display:grid;place-items:center;box-shadow:0 8px 20px #2F4FE040">
+          <svg viewBox="0 0 48 48" width="44" height="44" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#FFFFFF"></circle></svg>
+        </div>
+        <span style="position:absolute;left:16px;bottom:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3A3F4C">App icon</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:32px;padding-top:12px">
+    <div style="display:grid;gap:8px;align-content:start">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">A — Upper route</span>
+      <p style="margin:0;font-size:16px;line-height:1.5;color:#3A3F4C;text-wrap:pretty">The plan: where the load should be, when it was promised.</p>
+    </div>
+    <div style="display:grid;gap:8px;align-content:start">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">B — Lower route</span>
+      <p style="margin:0;font-size:16px;line-height:1.5;color:#3A3F4C;text-wrap:pretty">Reality: where the truck actually is right now.</p>
+    </div>
+    <div style="display:grid;gap:8px;align-content:start">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">C — Merge + stop</span>
+      <p style="margin:0;font-size:16px;line-height:1.5;color:#3A3F4C;text-wrap:pretty">Fleet Fusion brings the two back together at the cheapest point and lands the delivery.</p>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:20px">
+    <div style="border:1px dashed #B8BCC8;border-radius:6px;padding:32px;display:grid;gap:20px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Clear space = height of the stop dot × 2 on every side</span>
+      <div style="justify-self:center;padding:28px;outline:1px dashed #2F4FE0;outline-offset:0;background:#2F4FE00D;display:flex;align-items:center;gap:12px">
+        <svg viewBox="0 0 48 48" width="44" height="44" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg>
+        <span style="font-size:30px;font-weight:700;font-stretch:115%;letter-spacing:-.035em">Fleet Fusion</span>
+      </div>
+    </div>
+    <div style="border:1px dashed #B8BCC8;border-radius:6px;padding:32px;display:grid;gap:20px">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Minimum size — lockup 96px / 24mm · mark 16px / 5mm</span>
+      <div style="display:flex;align-items:flex-end;gap:32px;justify-content:center;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 48 48" width="18" height="18" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg>
+          <span style="font-size:13px;font-weight:700;font-stretch:115%;letter-spacing:-.02em">Fleet Fusion</span>
+        </div>
+        <svg viewBox="0 0 48 48" width="16" height="16" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg>
+      </div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Don't: recolour the routes, rotate the mark, outline it, or set the wordmark in another font.</span>
+    </div>
+  </div>
+</section>
+
+<section id="specs" data-screen-label="02 Logo Specs" style="padding:80px 0;border-top:1px solid #DCDBD4;display:grid;gap:40px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap"><h2 style="margin:0;font-size:44px;font-weight:700;font-stretch:112%;letter-spacing:-.025em">02 Logo specifications</h2><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5A5F6B">All measurements in grid units (u)</span></div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:20px;align-items:start">
+<div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;padding:24px"><svg viewBox="0 0 84 62" style="width:100%;height:auto;display:block" fill="none">
+<g stroke="#2F4FE0" stroke-width=".15" opacity=".35"><line x1="16" y1="8" x2="16" y2="56"></line><line x1="16" y1="8" x2="64" y2="8"></line><line x1="20" y1="8" x2="20" y2="56"></line><line x1="16" y1="12" x2="64" y2="12"></line><line x1="24" y1="8" x2="24" y2="56"></line><line x1="16" y1="16" x2="64" y2="16"></line><line x1="28" y1="8" x2="28" y2="56"></line><line x1="16" y1="20" x2="64" y2="20"></line><line x1="32" y1="8" x2="32" y2="56"></line><line x1="16" y1="24" x2="64" y2="24"></line><line x1="36" y1="8" x2="36" y2="56"></line><line x1="16" y1="28" x2="64" y2="28"></line><line x1="40" y1="8" x2="40" y2="56"></line><line x1="16" y1="32" x2="64" y2="32"></line><line x1="44" y1="8" x2="44" y2="56"></line><line x1="16" y1="36" x2="64" y2="36"></line><line x1="48" y1="8" x2="48" y2="56"></line><line x1="16" y1="40" x2="64" y2="40"></line><line x1="52" y1="8" x2="52" y2="56"></line><line x1="16" y1="44" x2="64" y2="44"></line><line x1="56" y1="8" x2="56" y2="56"></line><line x1="16" y1="48" x2="64" y2="48"></line><line x1="60" y1="8" x2="60" y2="56"></line><line x1="16" y1="52" x2="64" y2="52"></line><line x1="64" y1="8" x2="64" y2="56"></line><line x1="16" y1="56" x2="64" y2="56"></line></g>
+<g transform="translate(16 8)"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></g>
+<g stroke="#E8962B" stroke-width=".25"><line x1="16" y1="4" x2="64" y2="4"></line><line x1="16" y1="3" x2="16" y2="5"></line><line x1="64" y1="3" x2="64" y2="5"></line>
+<line x1="10" y1="8" x2="10" y2="56"></line><line x1="9" y1="8" x2="11" y2="8"></line><line x1="9" y1="56" x2="11" y2="56"></line>
+<line x1="72" y1="21" x2="72" y2="43"></line><line x1="71" y1="21" x2="73" y2="21"></line><line x1="71" y1="43" x2="73" y2="43"></line>
+<line x1="36" y1="21" x2="73" y2="21" stroke-dasharray=".6 .6"></line><line x1="36" y1="43" x2="73" y2="43" stroke-dasharray=".6 .6"></line>
+<line x1="19" y1="18.25" x2="19" y2="23.75"></line><line x1="18.3" y1="18.25" x2="19.7" y2="18.25"></line><line x1="18.3" y1="23.75" x2="19.7" y2="23.75"></line>
+<line x1="22" y1="15" x2="35" y2="15"></line><line x1="22" y1="14.3" x2="22" y2="15.7"></line><line x1="35" y1="14.3" x2="35" y2="15.7"></line>
+<line x1="52.5" y1="39" x2="61.5" y2="39"></line><line x1="52.5" y1="38.3" x2="52.5" y2="39.7"></line><line x1="61.5" y1="38.3" x2="61.5" y2="39.7"></line>
+<line x1="52" y1="26" x2="52" y2="38" stroke-dasharray=".6 .6"></line></g>
+<circle cx="52" cy="32" r=".9" fill="#E8962B"></circle>
+<g fill="#8A4F00" font-family="IBM Plex Mono, monospace" font-size="2.2">
+<text x="40" y="2.4" text-anchor="middle">48u</text><text x="8.6" y="32.7" text-anchor="end">48u</text>
+<text x="73.6" y="32.7">22u</text><text x="17.8" y="21.7" text-anchor="end">5.5u</text>
+<text x="28.5" y="13.6" text-anchor="middle">13u</text><text x="57" y="42" text-anchor="middle">Ø9u</text>
+<text x="52" y="59.5" text-anchor="middle">merge 36u, 24u</text></g>
+<line x1="52" y1="38" x2="52" y2="57" stroke="#E8962B" stroke-width=".25" stroke-dasharray=".6 .6"></line>
+</svg></div>
+<div style="display:grid;border-top:1px solid #E4E3DC"><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Grid</span><span style="font-size:15px;line-height:1.4">48 × 48 units (u). 1u = mark height ÷ 48</span></div><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Stroke</span><span style="font-size:15px;line-height:1.4">5.5u, round caps</span></div><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Route spacing</span><span style="font-size:15px;line-height:1.4">22u centre to centre (at 13u and 35u)</span></div><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Straight run</span><span style="font-size:15px;line-height:1.4">13u (x 6u → 19u)</span></div><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Curve</span><span style="font-size:15px;line-height:1.4">Cubic, 19u → 36u · handles (28, 13) & (27, 24)</span></div><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Merge point</span><span style="font-size:15px;line-height:1.4">36u, 24u</span></div><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Stop dot</span><span style="font-size:15px;line-height:1.4">Ø 9u · centre 41u, 24u</span></div><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Live area</span><span style="font-size:15px;line-height:1.4">42.25u × 27.5u</span></div><div style="display:grid;grid-template-columns:140px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Colour</span><span style="font-size:15px;line-height:1.4">Upper route + dot Cobalt · lower route Ink</span></div></div>
+</div>
+<div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;padding:32px;display:grid;gap:24px;overflow-x:auto">
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">Lockup proportions — scale as one unit, never re-space</span>
+<div style="display:grid;grid-template-columns:auto 72px 18px auto;column-gap:0;row-gap:10px;align-items:center;justify-content:start">
+<div style="height:72px;border-right:1px solid #E8962B;padding-right:10px;display:flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A4F00;margin-right:12px;white-space:nowrap">H 72</div>
+<svg viewBox="0 0 48 48" width="72" height="72" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg>
+<div style="height:72px;background:repeating-linear-gradient(45deg,#E8962B33 0 3px,transparent 3px 6px)"></div>
+<span style="font-size:52px;font-weight:700;font-stretch:115%;letter-spacing:-.035em;line-height:1">Fleet Fusion</span>
+<div></div>
+<div style="border-top:1px solid #E8962B;padding-top:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A4F00;text-align:center">1H</div>
+<div style="border-top:1px solid #E8962B;padding-top:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A4F00;text-align:center;position:relative;height:20px"><span style="position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap">.25H</span></div>
+<div style="border-top:1px solid #E8962B;padding-top:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#8A4F00;text-align:center">Wordmark</div>
+</div>
+<span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#8A4F00">Wordmark: font size .72H · Archivo Bold · width 115% · tracking −3.5%</span>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:24px;font-size:14px;line-height:1.45;color:#3A3F4C">
+<span><b style="color:#14171F">Alignment.</b> Wordmark is centred vertically on the merge point.</span>
+<span><b style="color:#14171F">Stacked lockup.</b> Mark above, gap .2H, wordmark centred. For square spaces only.</span>
+<span><b style="color:#14171F">Clear space.</b> 2× dot diameter (18u) on all sides.</span>
+</div></div>
+<div style="display:grid;gap:14px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Misuse</span>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">
+<div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;display:grid;gap:10px;padding:16px;justify-items:center"><div style="height:90px;display:grid;place-items:center;opacity:.85"><div style="transform:rotate(-30deg)"><svg viewBox="0 0 48 48" width="56" height="56" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg></div></div><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A23A2A">✕ Don't rotate</span></div><div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;display:grid;gap:10px;padding:16px;justify-items:center"><div style="height:90px;display:grid;place-items:center;opacity:.85"><div style="transform:scaleX(1.6)"><svg viewBox="0 0 48 48" width="56" height="56" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg></div></div><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A23A2A">✕ Don't stretch</span></div><div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;display:grid;gap:10px;padding:16px;justify-items:center"><div style="height:90px;display:grid;place-items:center;opacity:.85"><svg viewBox="0 0 48 48" width="56" height="56" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#E8962B" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#1F9461" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#E8962B"></circle></svg></div><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A23A2A">✕ Don't recolour</span></div><div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;display:grid;gap:10px;padding:16px;justify-items:center"><div style="height:90px;display:grid;place-items:center;opacity:.85"><svg viewBox="0 0 48 48" width="56" height="56" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="1.2" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="1.2" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="none"></circle></svg></div><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A23A2A">✕ Don't outline</span></div><div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;display:grid;gap:10px;padding:16px;justify-items:center"><div style="height:90px;display:grid;place-items:center;opacity:.85"><div style="filter:drop-shadow(4px 6px 3px #14171F80)"><svg viewBox="0 0 48 48" width="56" height="56" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg></div></div><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#A23A2A">✕ Don't add effects</span></div>
+</div></div>
+</section>
+<section id="favicon" data-screen-label="03 Favicon" style="padding:80px 0;border-top:1px solid #DCDBD4;display:grid;gap:40px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap"><h2 style="margin:0;font-size:44px;font-weight:700;font-stretch:112%;letter-spacing:-.025em">03 Favicon &amp; app icons</h2><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5A5F6B">Cobalt tile, white + ink mark</span></div>
+<div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;padding:32px;display:flex;gap:32px;align-items:flex-end;flex-wrap:wrap">
+<div style="display:grid;gap:10px;justify-items:start"><div style="width:16px;height:16px;border-radius:4px;background:#2F4FE0;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="12" height="12" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="5.5" fill="#FFFFFF"></circle></svg></div><div style="display:grid;gap:2px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#14171F">16 × 16</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">favicon.ico</span></div></div><div style="display:grid;gap:10px;justify-items:start"><div style="width:32px;height:32px;border-radius:7px;background:#2F4FE0;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="25" height="25" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="5.5" fill="#FFFFFF"></circle></svg></div><div style="display:grid;gap:2px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#14171F">32 × 32</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">favicon.ico</span></div></div><div style="display:grid;gap:10px;justify-items:start"><div style="width:48px;height:48px;border-radius:11px;background:#2F4FE0;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="30" height="30" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#FFFFFF"></circle></svg></div><div style="display:grid;gap:2px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#14171F">48 × 48</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">favicon.ico</span></div></div><div style="display:grid;gap:10px;justify-items:start"><div style="width:64px;height:64px;border-radius:14px;background:#2F4FE0;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="40" height="40" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#FFFFFF"></circle></svg></div><div style="display:grid;gap:2px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#14171F">64 × 64</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">Windows tile</span></div></div><div style="display:grid;gap:10px;justify-items:start"><div style="width:90px;height:90px;border-radius:20px;background:#2F4FE0;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="56" height="56" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#FFFFFF"></circle></svg></div><div style="display:grid;gap:2px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#14171F">180 × 180</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">apple-touch-icon.png · shown 50%</span></div></div><div style="display:grid;gap:10px;justify-items:start"><div style="width:96px;height:96px;border-radius:21px;background:#2F4FE0;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="60" height="60" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#FFFFFF"></circle></svg></div><div style="display:grid;gap:2px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#14171F">192 × 192</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">icon-192.png · shown 50%</span></div></div><div style="display:grid;gap:10px;justify-items:start"><div style="width:128px;height:128px;border-radius:28px;background:#2F4FE0;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="79" height="79" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#FFFFFF"></circle></svg></div><div style="display:grid;gap:2px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#14171F">512 × 512</span><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">icon-512.png · shown 25%</span></div></div>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:20px;align-items:start">
+<div style="display:grid;border-top:1px solid #E4E3DC"><div style="display:grid;grid-template-columns:120px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Tile</span><span style="font-size:15px;line-height:1.4">Cobalt #2F4FE0, square, corner radius 22% (iOS/Android mask their own)</span></div><div style="display:grid;grid-template-columns:120px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Mark size</span><span style="font-size:15px;line-height:1.4">62% of tile width, centred on the mark’s live area</span></div><div style="display:grid;grid-template-columns:120px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">≤ 32px</span><span style="font-size:15px;line-height:1.4">Simplified: all-white mark, stroke 7.5u, dot Ø11u</span></div><div style="display:grid;grid-template-columns:120px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">≥ 48px</span><span style="font-size:15px;line-height:1.4">Full mark: white upper route + dot, ink lower route</span></div><div style="display:grid;grid-template-columns:120px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Maskable</span><span style="font-size:15px;line-height:1.4">Keep mark inside the central 80% safe zone</span></div><div style="display:grid;grid-template-columns:120px 1fr;gap:16px;padding:13px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Formats</span><span style="font-size:15px;line-height:1.4">.ico (16/32/48), .png, .svg for modern browsers</span></div></div>
+<div style="background:#E4E3DC;border-radius:8px;padding:10px 10px 0;display:grid;gap:0">
+<div style="display:flex;gap:4px"><div style="background:#FFFFFF;border-radius:8px 8px 0 0;padding:10px 14px;display:flex;align-items:center;gap:8px;min-width:0"><div style="width:16px;height:16px;border-radius:4px;background:#2F4FE0;display:grid;place-items:center"><svg viewBox="0 0 48 48" width="12" height="12" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#FFFFFF" stroke-width="7.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="5.5" fill="#FFFFFF"></circle></svg></div><span style="font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Fleet Fusion — Dispatch</span></div><div style="padding:10px 14px;display:flex;align-items:center;gap:8px;color:#5A5F6B;font-size:13px;min-width:0"><span style="width:16px;height:16px;border-radius:50%;background:#C9C8C0;flex-shrink:0"></span><span style="white-space:nowrap">Other tab</span></div></div>
+<div style="background:#FFFFFF;height:90px;border-radius:0 8px 0 0;display:flex;align-items:flex-start;padding:12px 14px"><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B;background:#F6F5F1;border-radius:4px;padding:6px 10px">app.fleetfusion.com</span></div>
+</div></div>
+</section>
+<section id="color" data-screen-label="03 Color" style="padding:80px 0;border-top:1px solid #DCDBD4;display:grid;gap:40px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap">
+    <h2 style="margin:0;font-size:44px;font-weight:700;font-stretch:112%;letter-spacing:-.025em">04 Color</h2>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5A5F6B">Light first. Cobalt leads, status colours only mean status.</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px">
+    <sc-for list="{{ colors }}" as="c" hint-placeholder-count="6">
+      <div style="border:1px solid #E4E3DC;border-radius:6px;overflow:hidden;background:#FFFFFF;display:grid;align-content:start">
+        <div style="height:150px;background:{{ c.hex }};display:flex;align-items:flex-end;padding:12px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ c.on }}">{{ c.share }}</div>
+        <div style="padding:14px;display:grid;gap:4px">
+          <span style="font-weight:700;font-size:17px;font-stretch:108%">{{ c.name }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#3A3F4C">{{ c.hex }}</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">{{ c.rgb }}</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">{{ c.cmyk }}</span>
+          <span style="font-size:14px;line-height:1.4;color:#4A4F5C;margin-top:6px;text-wrap:pretty">{{ c.use }}</span>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="display:flex;height:14px;border-radius:3px;overflow:hidden">
+    <div style="flex:55;background:#F6F5F1;border:1px solid #DCDBD4"></div><div style="flex:20;background:#14171F"></div><div style="flex:12;background:#2F4FE0"></div><div style="flex:7;background:#E6E9F5"></div><div style="flex:3;background:#E8962B"></div><div style="flex:3;background:#1F9461"></div>
+  </div>
+</section>
+
+<section id="type" data-screen-label="04 Type" style="padding:80px 0;border-top:1px solid #DCDBD4;display:grid;gap:40px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap">
+    <h2 style="margin:0;font-size:44px;font-weight:700;font-stretch:112%;letter-spacing:-.025em">05 Typography</h2>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5A5F6B">Two families, both free on Google Fonts</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:20px">
+    <div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;padding:32px;display:grid;gap:20px;align-content:start">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">Archivo — display + body · width 100–115%</span>
+      <div style="font-size:120px;font-weight:700;font-stretch:115%;letter-spacing:-.04em;line-height:.9">Aa</div>
+      <div style="font-size:18px;line-height:1.5;color:#3A3F4C">ABCDEFGHIJKLMNOPQRSTUVWXYZ<br>abcdefghijklmnopqrstuvwxyz<br>0123456789 $ % → ·</div>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;padding:32px;display:grid;gap:20px;align-content:start">
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">IBM Plex Mono — data, ETAs, costs, labels</span>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:120px;font-weight:500;letter-spacing:-.04em;line-height:.9">00</div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:16px;line-height:1.6;color:#3A3F4C">LOAD #4821 · ETA 14:20 → 17:00<br>DELAY COST  $1,840.00<br>BEST FIX    $310.00</div>
+    </div>
+  </div>
+  <div style="display:grid;border-top:1px solid #E4E3DC">
+    <sc-for list="{{ scale }}" as="s" hint-placeholder-count="5">
+      <div style="display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:24px;align-items:baseline;padding:18px 0;border-bottom:1px solid #E4E3DC">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">{{ s.label }}</span>
+        <span style="font-family:{{ s.family }};font-size:{{ s.size }};font-weight:{{ s.weight }};font-stretch:{{ s.stretch }};letter-spacing:{{ s.track }};line-height:1.1">{{ s.sample }}</span>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="apply" data-screen-label="05 Applications" style="padding:80px 0;border-top:1px solid #DCDBD4;display:grid;gap:40px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap">
+    <h2 style="margin:0;font-size:44px;font-weight:700;font-stretch:112%;letter-spacing:-.025em">06 Applications</h2>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5A5F6B">Product alert · business card · status chips</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr));gap:20px;align-items:start">
+    <div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:10px;box-shadow:0 1px 2px #14171F0D,0 12px 32px #14171F0F;overflow:hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #EEEDE8;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 48 48" width="20" height="20" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">LOAD #4821 · DALLAS → ST. LOUIS</span>
+        </div>
+        <span style="background:#FCEFD9;color:#8A4F00;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;padding:4px 8px;border-radius:3px">RUNNING LATE</span>
+      </div>
+      <div style="padding:24px 20px;display:grid;gap:20px">
+        <div style="font-size:26px;font-weight:700;font-stretch:108%;letter-spacing:-.02em;line-height:1.15">2h 40m behind. Fixing it costs $310, ignoring it costs $1,840.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="background:#F6F5F1;border-radius:6px;padding:14px;display:grid;gap:4px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5F6B">COST OF DELAY</span><span style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;color:#8A4F00">$1,840</span></div>
+          <div style="background:#E6E9F5;border-radius:6px;padding:14px;display:grid;gap:4px"><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#3A3F4C">CHEAPEST FIX</span><span style="font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:500;color:#2F4FE0">$310</span></div>
+        </div>
+        <p style="margin:0;font-size:15px;line-height:1.5;color:#3A3F4C">Hand off to relay driver at Joplin, MO. Arrives 15:05, inside the receiver's window.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button style="background:#2F4FE0;color:#FFFFFF;border:0;border-radius:6px;padding:12px 18px;font-family:'Archivo',sans-serif;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap;flex-shrink:0" style-hover="background:#2440C4">Apply fix</button>
+          <button style="background:transparent;color:#14171F;border:1px solid #D2D1CA;border-radius:6px;padding:12px 18px;font-family:'Archivo',sans-serif;font-weight:600;font-size:15px;cursor:pointer;white-space:nowrap;flex-shrink:0" style-hover="background:#F6F5F1">See 3 other options</button>
+        </div>
+      </div>
+    </div>
+    <div style="display:grid;gap:20px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+        <div style="aspect-ratio:1.75;background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 8px 24px #14171F0F">
+          <svg viewBox="0 0 48 48" width="30" height="30" fill="none"><path d="M6 13H19C28 13 27 24 36 24" stroke="#2F4FE0" stroke-width="5.5" stroke-linecap="round"></path><path d="M6 35H19C28 35 27 24 36 24" stroke="#14171F" stroke-width="5.5" stroke-linecap="round"></path><circle cx="41" cy="24" r="4.5" fill="#2F4FE0"></circle></svg>
+          <div style="display:grid;gap:2px"><span style="font-weight:700;font-size:15px;font-stretch:108%">Your Name</span><span style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:#5A5F6B">Head of Operations</span></div>
+        </div>
+        <div style="aspect-ratio:1.75;background:#2F4FE0;border-radius:6px;padding:20px;display:flex;flex-direction:column;justify-content:space-between;color:#FFFFFF;box-shadow:0 8px 24px #2F4FE033">
+          <span style="font-size:22px;font-weight:700;font-stretch:115%;letter-spacing:-.03em">Fleet Fusion</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:10px">fleetfusion.com</span>
+        </div>
+      </div>
+      <div style="background:#FFFFFF;border:1px solid #E4E3DC;border-radius:6px;padding:20px;display:grid;gap:14px">
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">Status chips</span>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span style="background:#DDF1E6;color:#0E5C3A;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:6px 10px;border-radius:3px">ON TIME</span>
+          <span style="background:#FCEFD9;color:#8A4F00;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:6px 10px;border-radius:3px">RUNNING LATE</span>
+          <span style="background:#E6E9F5;color:#2F4FE0;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:6px 10px;border-radius:3px">FIX SUGGESTED</span>
+          <span style="background:#14171F;color:#F6F5F1;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;padding:6px 10px;border-radius:3px">DELIVERED</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="voice" data-screen-label="06 Voice" style="padding:80px 0;border-top:1px solid #DCDBD4;display:grid;gap:40px">
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap">
+    <h2 style="margin:0;font-size:44px;font-weight:700;font-stretch:112%;letter-spacing:-.025em">07 Voice</h2>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5A5F6B">Talk like a sharp dispatcher</span>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:32px">
+    <sc-for list="{{ voice }}" as="v" hint-placeholder-count="3">
+      <div style="display:grid;gap:12px;align-content:start;border-top:3px solid #2F4FE0;padding-top:18px">
+        <span style="font-size:24px;font-weight:700;font-stretch:110%;letter-spacing:-.02em">{{ v.trait }}</span>
+        <p style="margin:0;font-size:16px;line-height:1.5;color:#3A3F4C;text-wrap:pretty">{{ v.desc }}</p>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#1F7A50">✓ {{ v.do }}</span>
+        <span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#A23A2A">✕ {{ v.dont }}</span>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section id="assets" data-screen-label="08 Assets" style="padding:80px 0;border-top:1px solid #DCDBD4;display:grid;gap:40px">
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:24px;flex-wrap:wrap"><h2 style="margin:0;font-size:44px;font-weight:700;font-stretch:112%;letter-spacing:-.025em">08 Asset checklist</h2><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#5A5F6B">What ships in the brand folder</span></div>
+<div style="display:grid;border-top:1px solid #E4E3DC"><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">logo-primary</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">SVG · PDF · PNG @1x/@2x</span><span style="font-size:14px;color:#4A4F5C">Default lockup, light backgrounds</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">logo-reversed</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">SVG · PDF · PNG</span><span style="font-size:14px;color:#4A4F5C">On Ink or photography</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">logo-on-cobalt</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">SVG · PDF · PNG</span><span style="font-size:14px;color:#4A4F5C">On Cobalt surfaces</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">logo-mono-ink / -white</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">SVG · PDF · EPS</span><span style="font-size:14px;color:#4A4F5C">One-colour print, embroidery, vinyl</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">logo-stacked</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">SVG · PNG</span><span style="font-size:14px;color:#4A4F5C">Square spaces, social avatars</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">mark</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">SVG · PNG</span><span style="font-size:14px;color:#4A4F5C">Mark alone, ≥16px</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">favicon.ico</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">16 · 32 · 48</span><span style="font-size:14px;color:#4A4F5C">Browser tabs</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">apple-touch-icon</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">PNG 180 × 180</span><span style="font-size:14px;color:#4A4F5C">iOS home screen</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">icon-192 / icon-512</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">PNG + maskable</span><span style="font-size:14px;color:#4A4F5C">Android, PWA</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">og-image</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">PNG 1200 × 630</span><span style="font-size:14px;color:#4A4F5C">Link previews</span></div><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px 24px;padding:14px 0;border-bottom:1px solid #E4E3DC"><span style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:#14171F">fonts</span><span style="font-family:'IBM Plex Mono',monospace;font-size:12px;color:#2F4FE0">Archivo · IBM Plex Mono</span><span style="font-size:14px;color:#4A4F5C">Google Fonts, OFL licence</span></div></div>
+<p style="margin:0;font-size:14px;color:#5A5F6B;max-width:640px;line-height:1.5">Print: use the CMYK values in the Color section and request a proof before final runs. Digital: always SVG where supported.</p>
+</section>
+
+<footer style="border-top:1px solid #DCDBD4;padding-top:28px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-family:'IBM Plex Mono',monospace;font-size:12px;color:#5A5F6B">
+  <span>Fleet Fusion Brand Pack · 2026</span><span>Archivo + IBM Plex Mono · Google Fonts</span>
+</footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;showConstruction&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    return {
+      showConstruction: this.props.showConstruction ?? false,
+      colors: [
+        { name: 'Paper', cmyk: 'CMYK 0 0 2 4', hex: '#F6F5F1', rgb: 'RGB 246 245 241', on: '#5A5F6B', share: '~55%', use: 'Default background for screens, documents and decks.' },
+        { name: 'Ink', cmyk: 'CMYK 36 26 0 88', hex: '#14171F', rgb: 'RGB 20 23 31', on: '#F6F5F1', share: '~20%', use: 'Text, wordmark, lower route of the mark.' },
+        { name: 'Cobalt', cmyk: 'CMYK 79 65 0 12', hex: '#2F4FE0', rgb: 'RGB 47 79 224', on: '#FFFFFF', share: '~12%', use: 'Brand colour. Primary actions, the plan route, the fix.' },
+        { name: 'Mist', cmyk: 'CMYK 6 5 0 4', hex: '#E6E9F5', rgb: 'RGB 230 233 245', on: '#3A3F4C', share: '~7%', use: 'Soft cobalt tint for panels and highlights.' },
+        { name: 'Signal', cmyk: 'CMYK 0 35 81 9', hex: '#E8962B', rgb: 'RGB 232 150 43', on: '#14171F', share: 'Status', use: 'Late loads and cost of delay. Never decorative.' },
+        { name: 'Clear', cmyk: 'CMYK 79 0 34 42', hex: '#1F9461', rgb: 'RGB 31 148 97', on: '#FFFFFF', share: 'Status', use: 'On time, resolved, money saved.' }
+      ],
+      scale: [
+        { label: 'Display · 72', family: "'Archivo',sans-serif", size: '72px', weight: 700, stretch: '115%', track: '-0.035em', sample: 'Late, priced, fixed.' },
+        { label: 'H1 · 44', family: "'Archivo',sans-serif", size: '44px', weight: 700, stretch: '112%', track: '-0.025em', sample: 'Cheapest way back on time' },
+        { label: 'H2 · 26', family: "'Archivo',sans-serif", size: '26px', weight: 600, stretch: '108%', track: '-0.015em', sample: '3 loads need attention this morning' },
+        { label: 'Body · 17', family: "'Archivo',sans-serif", size: '17px', weight: 400, stretch: '100%', track: '0', sample: 'Relay at Joplin keeps the receiver window and avoids the detention fee.' },
+        { label: 'Data · 14 mono', family: "'IBM Plex Mono',monospace", size: '14px', weight: 500, stretch: '100%', track: '0.02em', sample: 'ETA 17:00 · +2H40M · $1,840 AT RISK' }
+      ],
+      voice: [
+        { trait: 'Numbers first', desc: 'Lead with the delay and the dollar figure. Dispatchers decide on cost.', do: 'Costs $1,840 if ignored.', dont: 'This may impact margins.' },
+        { trait: 'One clear call', desc: 'Recommend the cheapest fix plainly, keep alternatives one tap away.', do: 'Swap to relay at Joplin.', dont: 'Consider exploring options.' },
+        { trait: 'Calm under delay', desc: 'Late loads are routine. No alarm language, no exclamation marks.', do: '2h 40m behind.', dont: 'URGENT!! Load in trouble!' }
+      ]
+    };
+  }
+}
+</script>
+</body>
+</html>
