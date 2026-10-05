@@ -59,3 +59,18 @@ def remaining_route_km(route: Sequence[Sequence[float]], position: Sequence[floa
     remaining = haversine_km(proj, route[i + 1])
     remaining += sum(haversine_km(route[j], route[j + 1]) for j in range(i + 1, len(route) - 1))
     return remaining + off
+
+
+def point_at_fraction(route: Sequence[Sequence[float]], fraction: float) -> List[float]:
+    """Point `fraction` (0..1) of the way along the route, by distance."""
+    if len(route) < 2:
+        return list(route[0]) if route else [0.0, 0.0]
+    target = route_length_km(route) * max(0.0, min(1.0, fraction))
+    for i in range(len(route) - 1):
+        seg = haversine_km(route[i], route[i + 1])
+        if target <= seg or i == len(route) - 2:
+            t = 0.0 if seg == 0 else min(1.0, target / seg)
+            a, b = route[i], route[i + 1]
+            return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
+        target -= seg
+    return list(route[-1])

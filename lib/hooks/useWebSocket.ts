@@ -23,6 +23,31 @@ export interface FleetMetrics {
     demoControls?: boolean;
 }
 
+export interface ImpactAssumptions {
+    trucks: number;
+    incidents_per_100_trips: number;
+    discovery_delay_min: number;
+}
+
+export interface ImpactSide {
+    penalty: number;
+    relief_spend: number;
+    total_cost: number;
+    late_share: number;
+    relief_share: number;
+}
+
+export interface ImpactResult {
+    assumptions: ImpactAssumptions & { samples?: number };
+    per_incident: { today: ImpactSide; fleetfusion: ImpactSide };
+    saving_per_incident: number;
+    cost_reduction_pct: number;
+    monthly: { trips: number; incidents: number; cost_today: number; cost_with_ff: number; saving: number;
+        late_deliveries_avoided: number; extra_co2_kg: number };
+    yearly_saving: number;
+    avg_lane_km: number;
+}
+
 interface WebSocketDataMessage {
     trucks?: Truck[];
     events?: AgentEvent[];
@@ -44,6 +69,7 @@ interface WebSocketState {
     arbitrageOpportunity: ArbitrageOpportunity | null;
     metrics: FleetMetrics | null;
     decisions: DecisionRecord[];
+    impact: ImpactResult | null;
     connected: boolean;
     error: string | null;
 }
@@ -96,6 +122,7 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         connected: false,
         metrics: null,
         decisions: [],
+        impact: null,
         error: null,
     });
 
@@ -209,6 +236,10 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
             case 'ai_toggled':
             case 'demo_ack':
                 break;  // reflected in the next state_update
+
+            case 'impact_result':
+                setState(prev => ({...prev, impact: (message as unknown as {data: ImpactResult}).data}));
+                break;
 
             case 'error':
                 console.warn('Server:', (message as {message?: string}).message);
@@ -354,6 +385,11 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         sendMessage({type: 'set_ai', enabled});
     }, [sendMessage]);
 
+    // With-vs-without comparison on the real lanes, recomputed by the backend
+    const requestImpact = useCallback((assumptions: ImpactAssumptions) => {
+        sendMessage({type: 'impact_request', assumptions: {...assumptions}});
+    }, [sendMessage]);
+
     // Presentation-only: trigger a breakdown on cue, or reset the scripted demo
     const demoControl = useCallback((action: 'breakdown' | 'reset') => {
         sendMessage({type: 'demo_control', action});
@@ -385,6 +421,8 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         arbitrageOpportunity: state.arbitrageOpportunity,
         metrics: state.metrics,
         decisions: state.decisions,
+        impact: state.impact,
+        requestImpact,
         classifyIncident,
         setAiEnabled,
         demoControl,

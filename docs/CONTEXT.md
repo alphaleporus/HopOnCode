@@ -134,3 +134,15 @@ Open issues / next (superseded items marked):
   the full execute → webhook → resume loop.
 - Wire start-demo.sh for Traccar mode (Traccar + devices + backend), update .env.example (FEED, DECISION_WEBHOOK_URL).
 - Then: impact comparison (with vs without FF using 63% baseline) and UI overhaul with the brand pack.
+
+## 10. Impact comparison (done)
+`core/impact.py`: paired simulation on the real lanes/contracts. Same incidents (same true duration, same
+relief-success draw) handled TODAY (noticed after 60 min + 45 min phoning; cheapest relief for breakdown/accident)
+vs FLEETFUSION (3 min signal; executes EXECUTE recommendations). Default 100 trucks, 8 incidents/100 trips
+(ASSUMPTION, no public data), 300 km/day, 26 days.
+Result: ₹7,705 → ₹3,639 per incident (−53%); late deliveries 24% → 12%; relief booked 29% → 14% (less CO₂);
+≈ ₹9 L/month, ₹1.07 Cr/year per 100 trucks. Sensitivity (monthly, per 100 trucks): ₹3.0 L (4/100, 30 min)
+… ₹16.2 L (12/100, 120 min). `scripts/impact_report.py` prints the table + grid.
+UI: Analytics → "Impact: with vs without FleetFusion" with sliders (fleet size, incidents, discovery delay);
+hub message `impact_request` → `impact_result`. 40 tests.
+Next: UI overhaul with the brand pack; verify Ollama explanations; README/PRODUCT for Traccar + impact.

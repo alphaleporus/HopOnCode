@@ -44,6 +44,27 @@ def env_bool(name: str, default: bool) -> bool:
     return os.getenv(name, str(default)).lower() in ("1", "true", "yes")
 
 
+def build_impact_model(contracts_dir: str):
+    """With-vs-without comparison on the real lanes; None if the fleet dataset hasn't been built."""
+    import glob
+    from dataclasses import fields
+    from core.impact import ImpactAssumptions, simulate
+    lanes_file = os.path.join("data", "fleet", "lanes.json")
+    if not os.path.exists(lanes_file):
+        return None
+    lanes = json.load(open(lanes_file))
+    contracts = {c.contract_id: c for c in (contract_from_json(open(p).read())
+                                            for p in glob.glob(os.path.join(contracts_dir, "GEN-*.json")))}
+    allowed = {f.name: f.type for f in fields(ImpactAssumptions)}
+
+    def run(params: dict) -> dict:
+        clean = {k: float(v) if allowed[k] in (float, "float") else int(v)
+                 for k, v in params.items() if k in allowed and k not in ("samples", "seed")}
+        return simulate(lanes, contracts, ImpactAssumptions(**clean))
+
+    return run
+
+
 def http_ingest(schema, route: str, webserver):
     table, writer = pw.io.http.rest_connector(
         webserver=webserver, route=route, schema=schema, autocommit_duration_ms=200,
@@ -158,6 +179,7 @@ def main():
     hub = RealtimeHub(host=os.getenv("WEBSOCKET_HOST", "localhost"), port=int(os.getenv("WEBSOCKET_PORT", "8765")),
                       on_command=on_command)
     hub_ref["hub"] = hub
+    hub.on_impact = build_impact_model(os.getenv("CONTRACTS_DIR", "data/contracts"))
     hub.ai_available = explainer is not None
     if sim and env_bool("DEMO_CONTROLS", True):
         hub.on_demo = lambda action: sim.reset() if action == "reset" else sim.trigger_breakdown()

@@ -11,6 +11,7 @@ import MetricsOverview from './components/MetricsOverview';
 import SavingsChart from './components/SavingsChart';
 import TruckStatusChart from './components/TruckStatusChart';
 import DecisionLog from './components/DecisionLog';
+import ImpactPanel from './components/ImpactPanel';
 
 function download(content: string, filename: string, type: string) {
     const url = URL.createObjectURL(new Blob([content], {type}));
@@ -24,7 +25,7 @@ function download(content: string, filename: string, type: string) {
 const csvCell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
 
 export default function AnalyticsPage() {
-    const {trucks, metrics, decisions, connected} = useWebSocket();
+    const {trucks, metrics, decisions, connected, impact, requestImpact} = useWebSocket();
 
     // Trucks with money at stake right now, biggest first
     const atRisk = trucks
@@ -106,6 +107,8 @@ export default function AnalyticsPage() {
 
                 <div className="flex-1 overflow-y-auto p-6">
                     <div className="max-w-[1600px] mx-auto space-y-6">
+                        <ImpactPanel connected={connected} impact={impact} requestImpact={requestImpact}/>
+
                         <MetricsOverview metrics={metrics}/>
 
                         <div className="grid lg:grid-cols-2 gap-6">

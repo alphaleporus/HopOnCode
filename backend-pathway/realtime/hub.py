@@ -12,7 +12,8 @@ Message contract (backward compatible with the existing frontend):
                      arbitrage_executed | arbitrage_dismissed | error | pong
     client → server  execute_arbitrage {truckId} | dismiss_arbitrage {truckId}
                      classify_incident {truckId, incident} | set_ai {enabled}
-                     demo_control {action: "breakdown" | "reset"} (demo only) | ping
+                     demo_control {action: "breakdown" | "reset"} (demo only)
+                     impact_request {assumptions} -> impact_result | ping
 """
 
 import asyncio
@@ -99,6 +100,8 @@ class RealtimeHub:
         self.ai_enabled = True
         # Demo-only controls (trigger breakdown / reset), wired by main.py when the simulator runs
         self.on_demo: Optional[Callable[[str], Optional[str]]] = None
+        # With-vs-without comparison on the real lanes (core/impact.py), wired by main.py
+        self.on_impact: Optional[Callable[[Dict], Dict]] = None
 
     # ---- Pathway callbacks (Pathway worker threads) ---------------------------------------
     def subscriber(self, view: str):
@@ -367,7 +370,15 @@ class RealtimeHub:
             async for raw in ws:
                 try:
                     msg = json.loads(raw)
-                    if msg.get("type") == "ping":
+                    if msg.get("type") == "impact_request":
+                        if self.on_impact is None:
+                            await ws.send(json.dumps({"type": "error", "message": "Impact model unavailable"}))
+                        else:
+                            # ~0.5 s of CPU: run off the event loop so live updates keep flowing
+                            result = await asyncio.get_running_loop().run_in_executor(
+                                None, self.on_impact, msg.get("assumptions") or {})
+                            await ws.send(json.dumps({"type": "impact_result", "data": result}))
+                    elif msg.get("type") == "ping":
                         await ws.send(json.dumps({"type": "pong", "timestamp": _iso(time.time())}))
                     elif msg.get("type") in ("execute_arbitrage", "dismiss_arbitrage", "classify_incident",
                                              "set_ai", "demo_control"):
