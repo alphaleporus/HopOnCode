@@ -3,10 +3,24 @@
 import {useState, useEffect, useCallback, useRef} from 'react';
 import {Truck, AgentEvent, ArbitrageOpportunity} from '../types';
 
+export interface FleetMetrics {
+    trucks: number;
+    onTime: number;
+    delayed: number;
+    critical: number;
+    resolved: number;
+    exposure: number;
+    decisions: number;
+    netSavings: number;
+    penaltiesAvoided: number;
+    extraCo2Kg: number;
+}
+
 interface WebSocketDataMessage {
     trucks?: Truck[];
     events?: AgentEvent[];
     arbitrage?: ArbitrageOpportunity | null;
+    metrics?: FleetMetrics;
 }
 
 interface WebSocketMessage {
@@ -20,6 +34,7 @@ interface WebSocketState {
     trucks: Truck[];
     events: AgentEvent[];
     arbitrageOpportunity: ArbitrageOpportunity | null;
+    metrics: FleetMetrics | null;
     connected: boolean;
     error: string | null;
 }
@@ -72,6 +87,7 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         events: [],
         arbitrageOpportunity: null,
         connected: false,
+        metrics: null,
         error: null,
     });
 
@@ -107,6 +123,9 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
                         // Process trucks - use backend routes directly
                         if (data.trucks && data.trucks.length > 0) {
                             newState.trucks = processTrucks(data.trucks);
+                        }
+                        if (data.metrics) {
+                            newState.metrics = data.metrics;
                         }
                         
                         // Update events - filter out critical alerts for resolved trucks
@@ -225,20 +244,18 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
                 console.log('❌ WebSocket disconnected');
                 setState(prev => ({...prev, connected: false}));
 
-                if (reconnectAttempts.current < maxReconnectAttempts) {
-                    reconnectAttempts.current++;
-                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000);
-                    console.log(`Reconnecting in ${delay}ms (attempt ${reconnectAttempts.current}/${maxReconnectAttempts})`);
-
-                    reconnectTimeoutRef.current = setTimeout(() => {
-                        connectRef.current();
-                    }, delay);
-                } else {
+                // Keep retrying forever with capped backoff, so a backend restart heals itself
+                reconnectAttempts.current++;
+                const delay = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000);
+                if (reconnectAttempts.current >= maxReconnectAttempts) {
                     setState(prev => ({
                         ...prev,
-                        error: 'Failed to connect to server. Please check if the backend is running.'
+                        error: 'Backend offline - start it with ./start-demo.sh (retrying automatically)'
                     }));
                 }
+                reconnectTimeoutRef.current = setTimeout(() => {
+                    connectRef.current();
+                }, delay);
             };
         } catch (error) {
             console.error('Failed to create WebSocket:', error);
@@ -342,6 +359,7 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         trucks: state.trucks,
         events: state.events,
         arbitrageOpportunity: state.arbitrageOpportunity,
+        metrics: state.metrics,
         connected: state.connected,
         error: state.error,
         executeArbitrage,

@@ -20,6 +20,7 @@ from . import incidents
 from .config import DecisionConfig
 from .geo import remaining_route_km
 from .models import Contract, SpotOffer
+from .money import fmt
 from .penalty import is_force_majeure, sla_penalty, spoilage_loss
 
 EXECUTE, CONSIDER, MONITOR, NONE = "EXECUTE", "CONSIDER", "MONITOR", "NONE"
@@ -181,24 +182,26 @@ def assess(snapshot: TruckSnapshot, contract: Contract, cfg: Optional[DecisionCo
 
 def summarize(a: Dict, contract: Contract) -> str:
     """Deterministic one-paragraph explanation (also the LLM fallback)."""
-    cur = "$" if a["currency"] == "USD" else f"{a['currency']} "
+    def m(x):
+        return fmt(x, a["currency"])
+
     if a["recommendation"] in (EXECUTE, CONSIDER):
         best = next(o for o in a["options"] if o["label"] == a["best"])
         parts = [
             f"{a['truck_id']} is stopped ({a['incident'] or 'unexplained stop'}) with "
             f"{a['remaining_km']:.0f} km to go; waiting projects {a['lateness_hours']:.1f} h late "
-            f"and {cur}{a['exposure']:,.0f} exposure for {contract.client}.",
-            f"{best['label']} arrives in {best['arrival_hours']:.1f} h for {cur}{best['direct_cost']:,.0f} "
-            f"(reliability {best['reliability']:.0%}), expected cost {cur}{best['expected_cost']:,.0f}.",
-            f"Net expected saving {cur}{a['net_savings']:,.0f}.",
+            f"and {m(a['exposure'])} exposure for {contract.client}.",
+            f"{best['label']} arrives in {best['arrival_hours']:.1f} h for {m(best['direct_cost'])} "
+            f"(reliability {best['reliability']:.0%}), expected cost {m(best['expected_cost'])}.",
+            f"Net expected saving {m(a['net_savings'])}.",
         ]
         if a["spoilage_loss"] > 0:
-            parts.append(f"Avoids spoilage risk of {cur}{a['spoilage_loss']:,.0f} on perishable cargo.")
+            parts.append(f"Avoids spoilage risk of {m(a['spoilage_loss'])} on perishable cargo.")
         return " ".join(parts)
     if a["force_majeure"]:
         return f"{a['truck_id']} delayed by {a['incident']}: force majeure under the contract, no SLA penalty."
     if a["status"] == "critical":
-        return (f"{a['truck_id']} projects {cur}{a['exposure']:,.0f} exposure but no relief option is cheaper; "
+        return (f"{a['truck_id']} projects {m(a['exposure'])} exposure but no relief option is cheaper; "
                 f"monitoring.")
     if a["status"] == "delayed":
         return f"{a['truck_id']} is at risk: {a['slack_hours']:.1f} h of slack, {a['remaining_km']:.0f} km left."

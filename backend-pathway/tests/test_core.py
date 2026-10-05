@@ -15,9 +15,9 @@ NOW = 1_700_000_000
 
 def contract(**over):
     base = dict(
-        contract_id="C1", client="Acme", cargo_value=100_000, sla_hours=3, penalty_per_hour=1200,
-        max_penalty=6000, grace_minutes=15, force_majeure=("weather",),
-        spot_offers=(SpotOffer("Cheap", 800, 45, 0.95, 60), SpotOffer("Fast", 950, 30, 0.98, 65)),
+        contract_id="C1", client="Acme", cargo_value=2_000_000, sla_hours=3, penalty_per_hour=24000,
+        max_penalty=120000, grace_minutes=15, force_majeure=("weather",), currency="INR",
+        spot_offers=(SpotOffer("Cheap", 16000, 45, 0.95, 60), SpotOffer("Fast", 19000, 30, 0.98, 65)),
     )
     base.update(over)
     return Contract(**base)
@@ -55,15 +55,15 @@ def test_off_route_position_adds_gap():
 def test_sla_penalty_grace_and_cap():
     c = contract()
     assert sla_penalty(c, 0.2) == 0                          # within 15 min grace
-    assert sla_penalty(c, 1.25) == pytest.approx(1200)       # 1 billable hour
-    assert sla_penalty(c, 100) == 6000                       # capped
+    assert sla_penalty(c, 1.25) == pytest.approx(24000)      # 1 billable hour
+    assert sla_penalty(c, 100) == 120000                     # capped
 
 
 def test_spoilage_only_for_perishables_beyond_limit():
     assert spoilage_loss(contract(), 50) == 0
     cold = contract(perishable_max_transit_hours=10, spoilage_loss_fraction=0.4)
     assert spoilage_loss(cold, 9.9) == 0
-    assert spoilage_loss(cold, 10.1) == pytest.approx(40_000)
+    assert spoilage_loss(cold, 10.1) == pytest.approx(800_000)
 
 
 def test_contract_from_dict_supports_legacy_fields():
@@ -121,8 +121,8 @@ def test_best_option_minimizes_expected_cost_not_price():
 
 
 def test_unreliable_provider_loses_value():
-    reliable = assess(snap(), contract(spot_offers=(SpotOffer("P", 800, 45, 0.99, 60),)))
-    flaky = assess(snap(), contract(spot_offers=(SpotOffer("P", 800, 45, 0.5, 60),)))
+    reliable = assess(snap(), contract(spot_offers=(SpotOffer("P", 16000, 45, 0.99, 60),)))
+    flaky = assess(snap(), contract(spot_offers=(SpotOffer("P", 16000, 45, 0.5, 60),)))
     assert flaky["net_savings"] < reliable["net_savings"]
 
 
@@ -132,21 +132,21 @@ def test_force_majeure_removes_penalty():
 
 
 def test_perishable_cargo_drives_relief_even_with_small_penalty():
-    cold = contract(penalty_per_hour=10, max_penalty=50, sla_hours=3,
+    cold = contract(penalty_per_hour=200, max_penalty=1000, sla_hours=3,
                     perishable_max_transit_hours=4, spoilage_loss_fraction=0.4)
     a = assess(snap(), cold)
-    assert a["spoilage_loss"] == pytest.approx(40_000)
-    assert a["recommendation"] == EXECUTE and a["net_savings"] > 30_000
+    assert a["spoilage_loss"] == pytest.approx(800_000)
+    assert a["recommendation"] == EXECUTE and a["net_savings"] > 600_000
 
 
 def test_relief_not_worth_it_when_cheap_to_wait():
-    cheap_sla = contract(penalty_per_hour=50, max_penalty=200)
+    cheap_sla = contract(penalty_per_hour=1000, max_penalty=4000)
     a = assess(snap(), cheap_sla)
     assert a["status"] == "critical" and a["recommendation"] == MONITOR and a["net_savings"] == 0
 
 
 def test_marginal_savings_only_consider():
-    cfg = DecisionConfig(min_savings_abs=10_000)
+    cfg = DecisionConfig(min_savings_abs=200_000)
     a = assess(snap(), contract(), cfg)
     assert a["recommendation"] == CONSIDER
 
@@ -154,3 +154,18 @@ def test_marginal_savings_only_consider():
 def test_output_is_json_serializable():
     import json
     json.dumps(assess(snap(), contract()))
+
+
+# ---- driver-free incident inference ---------------------------------------------------------
+def test_infer_incident_from_machine_signals():
+    from core.incidents import infer_incident
+    assert infer_incident("", "P0217", False) == "breakdown"      # engine DTC
+    assert infer_incident("", "C0750", False) == "flat_tyre"      # tyre-pressure DTC
+    assert infer_incident("", "", True) == "accident"             # crash sensor wins
+    assert infer_incident("weather", "", False) == "weather"      # external feed label
+    assert infer_incident("", "", False) == ""                    # unexplained stop
+
+
+def test_inr_formatting():
+    from core.money import fmt
+    assert fmt(125000) == "₹1,25,000" and fmt(10000000) == "₹1,00,00,000" and fmt(950) == "₹950"

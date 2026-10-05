@@ -2,16 +2,28 @@
   "contract_id": "CNT-2024-003",
   "client": "AutoParts Express",
   "route": "Kolkata to Bhubaneswar",
-  "currency": "USD",
-  "cargo_value": 95000,
-  "cargo": {"type": "auto parts (general freight)"},
+  "currency": "INR",
+  "cargo_value": 8000000,
+  "cargo": {
+    "type": "auto parts (general freight)"
+  },
   "sla_hours": 7,
   "grace_minutes": 30,
-  "penalty_per_hour": 350,
-  "max_penalty": 1750,
-  "force_majeure": ["weather", "natural_disaster", "government_closure"],
-  "terms": "STANDARD FREIGHT AGREEMENT\n\nClient: AutoParts Express\n\nDELIVERY SPECIFICATIONS:\n- Standard freight service\n- Delivery window: 7 hours from dispatch (30 minute grace)\n\nPENALTY STRUCTURE:\n- $350 per hour of delay, maximum $1,750\n\nFORCE MAJEURE:\nWeather, natural disasters, and government-mandated closures exempt from penalties.",
+  "penalty_per_hour": 6000,
+  "max_penalty": 30000,
+  "force_majeure": [
+    "weather",
+    "natural_disaster",
+    "government_closure"
+  ],
+  "terms": "STANDARD FREIGHT AGREEMENT\n\nClient: AutoParts Express\n\nDELIVERY SPECIFICATIONS:\n- Standard freight service\n- Delivery window: 7 hours from dispatch (30 minute grace)\n\nPENALTY STRUCTURE:\n- Rs 6,000 per hour of delay, maximum Rs 30,000\n\nFORCE MAJEURE:\nWeather, natural disasters, and government-mandated closures exempt from penalties.",
   "spot_market_alternatives": [
-    {"provider": "Eastern Express", "cost": 650, "pickup_eta_minutes": 60, "reliability": 0.92, "speed_kmh": 60}
+    {
+      "provider": "Eastern Express",
+      "cost": 24000,
+      "pickup_eta_minutes": 60,
+      "reliability": 0.92,
+      "speed_kmh": 50
+    }
   ]
 }

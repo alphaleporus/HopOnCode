@@ -22,6 +22,7 @@ import pathway as pw
 
 from core.arbitrage import CONSIDER, EXECUTE, TruckSnapshot, assess
 from core.config import DecisionConfig
+from core.incidents import infer_incident
 from core.telemetry import TruckState, fold
 
 
@@ -31,6 +32,10 @@ class TelemetrySchema(pw.Schema):
     lat: float
     lon: float
     speed_kmh: float
+    # Machine signals (from the AIS-140 tracker / telematics platform); no driver input needed
+    fault_code: str = pw.column_definition(default_value="")      # engine/vehicle DTC, e.g. "P0217"
+    harsh_event: bool = pw.column_definition(default_value=False)  # crash / harsh-deceleration sensor
+    # Label from an integrated system (TMS event, geofence, weather feed) or a dispatcher override
     incident: str = pw.column_definition(default_value="")
     trip_started_at: int = pw.column_definition(default_value=0)
 
@@ -137,8 +142,10 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
             a["summary"] = f"{a['truck_id']}: relief via {cmd_provider} dispatched; cargo resumes on handover."
         return pw.Json(a)
 
-    # 1. Per-truck telemetry state, O(1) memory per truck
-    state = sources.telemetry.groupby(pw.this.truck_id).reduce(
+    # 1. Classify stops from machine signals, then fold per-truck state (O(1) memory per truck)
+    telemetry = sources.telemetry.with_columns(
+        incident=pw.apply_with_type(infer_incident, str, pw.this.incident, pw.this.fault_code, pw.this.harsh_event))
+    state = telemetry.groupby(pw.this.truck_id).reduce(
         pw.this.truck_id,
         st=truck_state(pw.this.ts, pw.this.lat, pw.this.lon, pw.this.speed_kmh, pw.this.incident,
                        pw.this.trip_started_at),

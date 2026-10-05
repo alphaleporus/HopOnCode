@@ -18,6 +18,7 @@ NC='\033[0m' # No Color
 
 # PID file to track processes
 PIDFILE=".demo-pids"
+mkdir -p logs
 
 ################################################################################
 # Helper Functions

@@ -7,6 +7,8 @@ Built for **Craftverse 2.0** (repo: HopOnCode). Evolved from our earlier FleetFu
 ([fork](https://github.com/alphaleporus/GenAI_Proj) · [original](https://github.com/Naveeeya/GenAI_Proj));
 the original docs are in [`docs/reference/`](docs/reference/).
 
+**Product overview, data sources and prioritized feature list: [`docs/PRODUCT.md`](docs/PRODUCT.md).**
+
 ---
 
 ## What it does

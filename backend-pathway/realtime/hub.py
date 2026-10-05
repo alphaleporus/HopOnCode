@@ -24,6 +24,8 @@ from typing import Callable, Dict, List, Optional
 
 import websockets
 
+from core.money import fmt
+
 EXECUTE, CONSIDER = "EXECUTE", "CONSIDER"
 
 
@@ -112,7 +114,7 @@ class RealtimeHub:
                     self._event_for_status(d, row)
                 continue
             if d.get("incident") and d["incident"] != prev.get("incident"):
-                self._event("sensor", f"📟 {tid} driver reported: {d['incident'].replace('_', ' ')}", "warning")
+                self._event("sensor", f"📟 {tid} telematics signal → {d['incident'].replace('_', ' ')}", "warning")
             if d["status"] != prev["status"]:
                 self._event_for_status(d, row)
             if d["recommendation"] == EXECUTE and prev.get("recommendation") != EXECUTE:
@@ -141,7 +143,7 @@ class RealtimeHub:
 
     @staticmethod
     def _money(x: float, d: Dict) -> str:
-        return f"${x:,.0f}" if d.get("currency", "USD") == "USD" else f"{d['currency']} {x:,.0f}"
+        return fmt(x, d.get("currency", "INR"))
 
     # ---- Snapshot ---------------------------------------------------------------------------
     def _explanation_for(self, incident_id: str) -> Optional[str]:

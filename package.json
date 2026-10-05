@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:all": "./start-demo.sh",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -13,6 +14,7 @@
     "@types/leaflet": "^1.9.21",
     "canvas-confetti": "^1.9.4",
     "framer-motion": "^12.23.24",
+    "geist": "^1.7.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.555.0",
     "next": "16.0.5",

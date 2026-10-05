@@ -24,6 +24,22 @@ UNKNOWN_STOP_BASE_MIN = 20.0
 UNKNOWN_STOP_CERTAINTY = 0.6
 
 
+def infer_incident(reported: Optional[str], fault_code: Optional[str], harsh_event: bool) -> str:
+    """Classify a stop from machine signals only: no driver input required.
+
+    Precedence: crash sensor > engine/vehicle fault code > label from an
+    integrated system (TMS event, geofence, weather feed, dispatcher override).
+    Anything else stays "" and is handled as an unexplained stop.
+    """
+    if harsh_event:
+        return "accident"
+    code = (fault_code or "").strip().upper()
+    if code:
+        # OBD-II / J1939 style: C-codes are chassis (tyre pressure, brakes); P/B/U imply the truck can't continue
+        return "flat_tyre" if code.startswith("C07") else "breakdown"
+    return normalize(reported)
+
+
 def normalize(incident: Optional[str]) -> str:
     return (incident or "").strip().lower().replace(" ", "_")
 

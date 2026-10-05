@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Leaf, BarChart3 } from 'lucide-react';
 import { useWebSocket } from '@/lib/hooks/useWebSocket';
+import { formatINR } from '@/lib/utils/format';
 import AgentOverlay from '@/components/dashboard/AgentOverlay';
 import FinancialModal from '@/components/dashboard/FinancialModal';
 import UserMenu from '@/components/dashboard/UserMenu';
@@ -32,7 +33,8 @@ const SupplyChainMap = dynamic(() => import('@/components/SupplyChainMap'), {
 
 export default function DashboardPage() {
   const [ecoRouteEnabled, setEcoRouteEnabled] = useState(false);
-  const { trucks, events, arbitrageOpportunity, executeArbitrage, dismissArbitrage, connected, error } = useWebSocket();
+  const { trucks, events, arbitrageOpportunity, executeArbitrage, dismissArbitrage, connected, error, metrics } = useWebSocket();
+  const onTimePct = metrics && metrics.trucks ? Math.round(((metrics.onTime + metrics.resolved) / metrics.trucks) * 100) : null;
 
   // Calculate total cargo value
   const totalCargoValue = trucks.reduce((sum, truck) => sum + truck.cargoValue, 0);
@@ -96,9 +98,9 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-4 gap-4 mt-4">
             <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Active</div><div className="text-2xl font-bold text-white mono-numbers">{trucks.length}</div></div>
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Cargo</div><div className="text-2xl font-bold text-teal-400 mono-numbers">${totalCargoValue.toLocaleString()}</div></div>
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">On-Time</div><div className="text-2xl font-bold text-cyan-400 mono-numbers">98%</div></div>
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Saved</div><div className="text-2xl font-bold text-orange-400 mono-numbers">$12K</div></div>
+            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Cargo</div><div className="text-2xl font-bold text-teal-400 mono-numbers">{formatINR(totalCargoValue)}</div></div>
+            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">On-Time</div><div className="text-2xl font-bold text-cyan-400 mono-numbers">{onTimePct === null ? '—' : `${onTimePct}%`}</div></div>
+            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Saved</div><div className="text-2xl font-bold text-orange-400 mono-numbers">{formatINR(metrics?.netSavings ?? 0)}</div></div>
           </div>
         </div>
 

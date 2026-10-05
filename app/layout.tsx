@@ -1,19 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// Self-hosted Geist (bundled font files): no Google Fonts fetch, so builds work offline
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
-const geistSans = Geist({
-    variable: "--font-geist-sans",
-    subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-    variable: "--font-geist-mono",
-    subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-    title: "FleetFusion - Autonomous Supply Chain Agent",
+    title: "FleetFusion - Real-time Delay Decision Engine",
     description: "Real-time financial intelligence for logistics operations",
     icons: {
         icon: "/Favicon.png",
@@ -27,7 +19,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
             {children}
         </body>
         </html>

@@ -58,7 +58,7 @@ export default function LandingPage() {
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
               <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
                 <Sparkles className="w-4 h-4 text-teal-400" />
-                <span className="text-sm text-teal-400 font-semibold">Autonomous Supply Chain Intelligence</span>
+                <span className="text-sm text-teal-400 font-semibold">Plugs into your TMS & GPS trackers</span>
               </motion.div>
               <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 tracking-tight leading-tight">
                 Supply Chain is Broken.{' '}
@@ -67,7 +67,7 @@ export default function LandingPage() {
                 </motion.span>
               </h1>
               <p className="text-xl text-slate-400 mb-8 leading-relaxed">
-                The first Autonomous Supply Chain Agent that negotiates penalties and reroutes cargo in real-time. Save millions, automatically.
+                Detects stalled trucks from GPS and engine data, prices the delay against each contract, and recommends the cheapest fix in seconds. No driver app, no AI dependency.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/login">
@@ -78,9 +78,10 @@ export default function LandingPage() {
                 <button className="btn-ghost px-8 py-4 rounded-xl text-lg font-semibold">Watch Demo</button>
               </div>
               <div className="grid grid-cols-3 gap-6 mt-12">
-                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">$12M</div><div className="text-sm text-slate-500">Penalties Avoided</div></div>
-                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">98.2%</div><div className="text-sm text-slate-500">On-Time Rate</div></div>
-                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">24/7</div><div className="text-sm text-slate-500">Autonomous</div></div>
+                {/* Sources: DPIIT-NCAER logistics cost study (FY24); TCI-IIM highway freight study */}
+                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">₹24L Cr</div><div className="text-sm text-slate-500">India logistics cost / yr (7.97% of GDP)</div></div>
+                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">5–25%</div><div className="text-sm text-slate-500">Journey time lost to stoppages</div></div>
+                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">0</div><div className="text-sm text-slate-500">Driver actions needed</div></div>
               </div>
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.8 }} className="relative">
@@ -164,7 +165,7 @@ export default function LandingPage() {
       <section className="py-20 px-6" id="platform">
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">Autonomous Supply Chain Intelligence</h2>
+            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">Delay Decisions, Priced in Real Time</h2>
             <p className="text-xl text-slate-400 max-w-2xl mx-auto">The platform that thinks, acts, and saves money while you sleep.</p>
           </motion.div>
           <FeatureCards />

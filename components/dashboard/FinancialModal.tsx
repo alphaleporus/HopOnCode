@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ArbitrageOpportunity } from '@/lib/types';
+import { formatINR } from '@/lib/utils/format';
 import { motion, AnimatePresence } from 'framer-motion';
 import confetti from 'canvas-confetti';
 import { 
@@ -123,7 +124,7 @@ export default function FinancialModal({ opportunity, onExecute, onDismiss }: Fi
                     </div>
                     <div className="text-sm text-slate-400 mb-4">Pay Contract Penalty</div>
                     <div className="text-4xl font-bold text-red-400 mb-2">
-                      ${opportunity.projectedPenalty.toLocaleString()}
+                      {formatINR(opportunity.projectedPenalty)}
                     </div>
                     <div className="text-xs text-slate-500">Total Loss</div>
                   </div>
@@ -136,7 +137,7 @@ export default function FinancialModal({ opportunity, onExecute, onDismiss }: Fi
                     </div>
                     <div className="text-sm text-slate-400 mb-4">{opportunity.solutionType}</div>
                     <div className="text-4xl font-bold text-teal-400 mb-2">
-                      ${opportunity.solutionCost.toLocaleString()}
+                      {formatINR(opportunity.solutionCost)}
                     </div>
                     <div className="text-xs text-slate-500">Solution Cost</div>
                   </div>
@@ -152,7 +153,7 @@ export default function FinancialModal({ opportunity, onExecute, onDismiss }: Fi
                     <div>
                       <div className="text-sm text-slate-400 mb-2">Net Savings if Executed</div>
                       <div className="text-6xl font-bold text-green-400">
-                        ${opportunity.netSavings.toLocaleString()}
+                        {formatINR(opportunity.netSavings)}
                       </div>
                     </div>
                     <motion.div

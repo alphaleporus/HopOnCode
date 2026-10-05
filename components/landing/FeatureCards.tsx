@@ -63,7 +63,7 @@ export default function FeatureCards() {
             <MapPin className="w-12 h-12 text-teal-400" />
           </motion.div>
           <h3 className="text-3xl font-bold text-white mb-4">Real-Time Visibility</h3>
-          <p className="text-slate-400 text-lg leading-relaxed mb-8">Track every shipment with sub-second precision. Our AI monitors 10,000+ data points per truck, per minute.</p>
+          <p className="text-slate-400 text-lg leading-relaxed mb-8">Track every shipment with sub-second precision. Reads the GPS and engine signals your trucks already send. No driver input.</p>
           <div className="grid grid-cols-3 gap-4">
             <motion.div whileHover={{ scale: 1.05 }} className="glass-card p-5 rounded-xl border border-teal-500/20">
               <div className="text-4xl font-bold text-white mono-numbers mb-2"><AnimatedCounter value={metrics.activeTrucks} /></div>
@@ -93,7 +93,7 @@ export default function FeatureCards() {
             <TrendingUp className="w-12 h-12 text-orange-400" />
           </motion.div>
           <h3 className="text-3xl font-bold text-white mb-4">Financial Arbitrage</h3>
-          <p className="text-slate-400 leading-relaxed mb-8">AI detects delays, calculates penalties, and finds cheaper alternatives—automatically.</p>
+          <p className="text-slate-400 leading-relaxed mb-8">Detects delays, prices contract penalties, and compares every recovery option by expected cost.</p>
           <div className="space-y-6">
             <div className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/20">
               <span className="text-sm text-slate-400">Penalty Cost</span>
@@ -138,7 +138,7 @@ export default function FeatureCards() {
             <Shield className="w-12 h-12 text-blue-400" />
           </motion.div>
           <h3 className="text-2xl font-bold text-white mb-4">Contract Intelligence</h3>
-          <p className="text-slate-400 leading-relaxed mb-6">AI reads your SLAs and negotiates penalties automatically.</p>
+          <p className="text-slate-400 leading-relaxed mb-6">Every decision follows your contract terms: grace periods, caps, cold-chain limits, force majeure.</p>
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">

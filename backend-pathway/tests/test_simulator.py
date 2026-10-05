@@ -22,9 +22,10 @@ def test_trucks_progress_along_route():
 
 def test_scenario_stop_and_relief_resume():
     sim = FleetSimulator(fleet_size=1, speedup=60,
-                         scenario=[{"at_s": 0, "truck_id": "TRK-402", "action": "stop", "incident": "breakdown"}])
+                         scenario=[{"at_s": 0, "truck_id": "TRK-402", "action": "stop"},
+                                   {"at_s": 0, "truck_id": "TRK-402", "action": "signal", "fault_code": "P0217"}])
     r = sim.tick(1)[0]
-    assert r["speed_kmh"] == 0 and r["incident"] == "breakdown"
+    assert r["speed_kmh"] == 0 and r["fault_code"] == "P0217" and r["incident"] == ""  # machine signal, no label
     sim.dispatch_relief("TRK-402", pickup_eta_min=30, transfer_min=0, speed_kmh=65)
     assert sim.tick(10)[0]["speed_kmh"] == 0      # 10 sim min: relief still en route
     assert sim.tick(30)[0]["speed_kmh"] > 0       # 30 more sim min: cargo moving again
