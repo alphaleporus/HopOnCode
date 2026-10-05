@@ -89,11 +89,11 @@ export default function LandingPage() {
                 <div className="glass-card rounded-2xl p-6 border-2 border-teal-500/20">
                   <div className="aspect-video bg-slate-900/50 rounded-xl overflow-hidden relative">
                     <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent" />
-                    <Image src="/Homepage_demo.png" alt="Homepage demo" width={800} height={600} className="object-cover object-center" />
+                    <Image src="/dashboard-demo.jpg" alt="FleetFusion recommending the cheapest fix for a broken-down truck" width={800} height={600} className="object-cover object-center" />
                   </div>
                 </div>
                 <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }} className="absolute -top-4 -right-4 glass-card px-4 py-2 rounded-full border border-teal-500/30">
-                  <span className="text-sm font-semibold text-teal-400">💰 $1,700 Saved</span>
+                  <span className="text-sm font-semibold text-teal-400">💰 ₹22,516 saved on one breakdown</span>
                 </motion.div>
               </div>
             </motion.div>

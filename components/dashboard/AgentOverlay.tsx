@@ -65,7 +65,8 @@ export default function AgentOverlay({ events }: AgentOverlayProps) {
 
       {/* Events list */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
-        {events.slice().reverse().map((event, index) => {
+        {/* Backend sends newest first */}
+        {events.map((event, index) => {
           const Icon = getIcon(event.type);
           const colorClass = getColor(event.type);
 

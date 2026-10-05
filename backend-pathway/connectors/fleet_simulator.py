@@ -48,7 +48,7 @@ RANDOM_INCIDENTS = ["breakdown", "flat_tyre", "traffic", "accident", "weather", 
 #   weather/checkpoint -> external feed label (weather API / geofence), traffic/"" -> nothing (unexplained stop)
 SIGNALS = {"breakdown": {"fault_code": "P0217"}, "flat_tyre": {"fault_code": "C0750"},
            "accident": {"harsh_event": True}, "weather": {"incident": "weather"},
-           "checkpoint": {"incident": "checkpoint"}}
+           "checkpoint": {"incident": "checkpoint", "engine_on": True}, "traffic": {"engine_on": True}}
 # Incident duration ranges (sim minutes) used when random incidents clear on their own
 RANDOM_DURATION_MIN = {"breakdown": (90, 300), "accident": (120, 360), "flat_tyre": (30, 90),
                        "traffic": (15, 60), "weather": (45, 180), "checkpoint": (20, 60), "": (10, 40)}
@@ -69,6 +69,8 @@ class SimTruck:
     incident: str = ""          # label from an external feed (geofence / weather / TMS), not the driver
     fault_code: str = ""        # engine / vehicle DTC from the tracker
     harsh_event: bool = False   # crash sensor
+    engine_on: bool = False     # ignition while stopped (queues/jams idle; breakdowns don't)
+    silent: bool = False        # tracker not reporting (power cut, no network, tampering)
     resume_at: Optional[int] = None         # sim time the stop ends (None = until relief/resume)
     relief_speed_kmh: Optional[float] = None
 
@@ -163,6 +165,8 @@ class FleetSimulator:
             readings = []
             for t in self.trucks.values():
                 self._maybe_random_incident(t, sim_dt)
+                if t.silent:
+                    continue  # tracker offline: no reading at all
                 if t.stopped and t.resume_at is not None and self.sim_now >= t.resume_at:
                     self._clear(t)
                 speed = 0.0
@@ -176,6 +180,7 @@ class FleetSimulator:
                     "truck_id": t.truck_id, "ts": self.sim_now, "lat": lat, "lon": lon,
                     "speed_kmh": round(speed, 1), "incident": t.incident if t.stopped else "",
                     "fault_code": t.fault_code if t.stopped else "", "harsh_event": t.harsh_event and t.stopped,
+                    "ignition": 1 if (not t.stopped or t.engine_on) else 0,
                     "trip_started_at": t.trip_started_at,
                 })
             return readings
@@ -183,6 +188,7 @@ class FleetSimulator:
     @staticmethod
     def _clear(t: SimTruck):
         t.stopped, t.incident, t.fault_code, t.harsh_event, t.resume_at = False, "", "", False, None
+        t.engine_on = False
 
     @staticmethod
     def _apply_signals(t: SimTruck, kind: str):
@@ -190,6 +196,7 @@ class FleetSimulator:
         t.incident = sig.get("incident", "")
         t.fault_code = sig.get("fault_code", "")
         t.harsh_event = sig.get("harsh_event", False)
+        t.engine_on = sig.get("engine_on", False)
 
     def _new_trip(self, t: SimTruck):
         """Delivered: turn around for the next job so the demo runs forever."""
@@ -229,6 +236,12 @@ class FleetSimulator:
                 print(f"🎬 Scenario: {t.truck_id} labelled '{t.incident}'")
             elif ev["action"] == "resume":
                 self._clear(t)
+            elif ev["action"] == "silent":
+                t.silent = True
+                print(f"🎬 Scenario: {t.truck_id} tracker went silent")
+            elif ev["action"] == "reconnect":
+                t.silent = False
+                print(f"🎬 Scenario: {t.truck_id} tracker back online")
 
     # ---- control from the decision layer ----------------------------------------------------
     def dispatch_relief(self, truck_id: str, pickup_eta_min: float, transfer_min: float, speed_kmh: float):

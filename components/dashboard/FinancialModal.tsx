@@ -86,7 +86,7 @@ export default function FinancialModal({ opportunity, onExecute, onDismiss }: Fi
             transition={{ type: 'spring', damping: 25 }}
             className="fixed inset-0 flex items-center justify-center z-[10001] p-4"
           >
-            <div className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-2xl w-full overflow-hidden">
+            <div className="bg-slate-900 border border-white/10 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className="bg-gradient-to-r from-amber-500/20 to-red-500/20 border-b border-white/10 p-6">
                 <div className="flex items-start justify-between">
@@ -96,10 +96,10 @@ export default function FinancialModal({ opportunity, onExecute, onDismiss }: Fi
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-slate-100">
-                        Arbitrage Opportunity Detected
+                        Recommended fix for {opportunity.truckId}
                       </h2>
                       <p className="text-slate-400 mt-1">
-                        Truck {opportunity.truckId} • {opportunity.details}
+                        {opportunity.details}
                       </p>
                     </div>
                   </div>
@@ -114,34 +114,64 @@ export default function FinancialModal({ opportunity, onExecute, onDismiss }: Fi
 
               {/* Content */}
               <div className="p-6">
-                {/* Options comparison */}
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  {/* Option A - Pay Fine */}
-                  <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <TrendingDown className="w-5 h-5 text-red-400" />
-                      <span className="font-semibold text-slate-200">Option A</span>
-                    </div>
-                    <div className="text-sm text-slate-400 mb-4">Pay Contract Penalty</div>
-                    <div className="text-4xl font-bold text-red-400 mb-2">
-                      {formatINR(opportunity.projectedPenalty)}
-                    </div>
-                    <div className="text-xs text-slate-500">Total Loss</div>
+                {/* Every option the engine compared, scored by expected total cost */}
+                {opportunity.options && opportunity.options.length > 1 ? (
+                  <div className="mb-6 overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-left text-slate-400 border-b border-white/10">
+                          <th className="py-2 pr-3 font-medium">Option</th>
+                          <th className="py-2 pr-3 font-medium text-right">Price</th>
+                          <th className="py-2 pr-3 font-medium text-right">Arrives in</th>
+                          <th className="py-2 pr-3 font-medium text-right">Late by</th>
+                          <th className="py-2 pr-3 font-medium text-right">Reliability</th>
+                          <th className="py-2 font-medium text-right">Expected total cost</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {opportunity.options.map(o => {
+                          const best = o.label === opportunity.solutionType;
+                          return (
+                            <tr key={o.label} className={`border-b border-white/5 ${best ? 'bg-teal-500/10 text-teal-200' : o.kind === 'wait' ? 'text-red-200' : 'text-slate-300'}`}>
+                              <td className="py-2 pr-3">
+                                {o.kind === 'wait' ? 'Do nothing (wait for recovery)' : o.label}
+                                {best && <span className="ml-2 text-[10px] font-semibold px-1.5 py-0.5 rounded bg-teal-500/30 text-teal-200">BEST</span>}
+                              </td>
+                              <td className="py-2 pr-3 text-right mono-numbers">{o.kind === 'wait' ? '—' : formatINR(o.direct_cost)}</td>
+                              <td className="py-2 pr-3 text-right mono-numbers">{o.arrival_hours.toFixed(1)} h</td>
+                              <td className="py-2 pr-3 text-right mono-numbers">{o.lateness_hours > 0 ? `${o.lateness_hours.toFixed(1)} h` : 'on time'}</td>
+                              <td className="py-2 pr-3 text-right mono-numbers">{Math.round(o.reliability * 100)}%</td>
+                              <td className="py-2 text-right mono-numbers font-semibold">{formatINR(o.expected_cost)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                    <p className="text-xs text-slate-500 mt-2">
+                      Expected total cost = price + penalties and spoilage still likely after the fix, weighted by how reliable the carrier is.
+                      {opportunity.confidence !== undefined && ` Confidence ${Math.round(opportunity.confidence * 100)}%.`}
+                    </p>
                   </div>
-
-                  {/* Option B - Execute Solution */}
-                  <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl p-5">
-                    <div className="flex items-center gap-2 mb-3">
-                      <TrendingUp className="w-5 h-5 text-teal-400" />
-                      <span className="font-semibold text-slate-200">Option B</span>
+                ) : (
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingDown className="w-5 h-5 text-red-400" />
+                        <span className="font-semibold text-slate-200">Do nothing</span>
+                      </div>
+                      <div className="text-4xl font-bold text-red-400 mb-2">{formatINR(opportunity.projectedPenalty)}</div>
+                      <div className="text-xs text-slate-500">Projected penalty</div>
                     </div>
-                    <div className="text-sm text-slate-400 mb-4">{opportunity.solutionType}</div>
-                    <div className="text-4xl font-bold text-teal-400 mb-2">
-                      {formatINR(opportunity.solutionCost)}
+                    <div className="bg-teal-500/10 border border-teal-500/20 rounded-xl p-5">
+                      <div className="flex items-center gap-2 mb-3">
+                        <TrendingUp className="w-5 h-5 text-teal-400" />
+                        <span className="font-semibold text-slate-200">{opportunity.solutionType}</span>
+                      </div>
+                      <div className="text-4xl font-bold text-teal-400 mb-2">{formatINR(opportunity.solutionCost)}</div>
+                      <div className="text-xs text-slate-500">Price</div>
                     </div>
-                    <div className="text-xs text-slate-500">Solution Cost</div>
                   </div>
-                </div>
+                )}
 
                 {/* Net Savings - The Star */}
                 <motion.div
@@ -151,8 +181,8 @@ export default function FinancialModal({ opportunity, onExecute, onDismiss }: Fi
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm text-slate-400 mb-2">Net Savings if Executed</div>
-                      <div className="text-6xl font-bold text-green-400">
+                      <div className="text-sm text-slate-400 mb-2">Expected saving vs doing nothing</div>
+                      <div className="text-5xl font-bold text-green-400">
                         {formatINR(opportunity.netSavings)}
                       </div>
                     </div>

@@ -18,18 +18,24 @@ INCIDENT_PROFILES: Dict[str, Dict[str, float]] = {
     "traffic": {"typical_min": 45, "certainty": 0.7},
     "weather": {"typical_min": 120, "certainty": 0.6},
     "checkpoint": {"typical_min": 40, "certainty": 0.75},
+    # Basic AIS-140 tier: stopped with the engine running usually means a queue/jam, not a breakdown
+    "idling": {"typical_min": 30, "certainty": 0.65},
 }
 
 UNKNOWN_STOP_BASE_MIN = 20.0
 UNKNOWN_STOP_CERTAINTY = 0.6
 
 
-def infer_incident(reported: Optional[str], fault_code: Optional[str], harsh_event: bool) -> str:
+def infer_incident(reported: Optional[str], fault_code: Optional[str], harsh_event: bool,
+                   ignition: int = -1) -> str:
     """Classify a stop from machine signals only: no driver input required.
 
     Precedence: crash sensor > engine/vehicle fault code > label from an
-    integrated system (TMS event, geofence, weather feed, dispatcher override).
-    Anything else stays "" and is handled as an unexplained stop.
+    integrated system (TMS event, geofence, weather feed) > ignition state.
+    `ignition` is 1 (on), 0 (off) or -1 (unknown); basic AIS-140 trackers report it.
+    Engine-on while stopped reads as idling in a queue; anything else stays ""
+    and is handled as an unexplained stop. (Dispatcher overrides are applied later,
+    in the pipeline, and win over all of these.)
     """
     if harsh_event:
         return "accident"
@@ -37,7 +43,10 @@ def infer_incident(reported: Optional[str], fault_code: Optional[str], harsh_eve
     if code:
         # OBD-II / J1939 style: C-codes are chassis (tyre pressure, brakes); P/B/U imply the truck can't continue
         return "flat_tyre" if code.startswith("C07") else "breakdown"
-    return normalize(reported)
+    label = normalize(reported)
+    if label:
+        return label
+    return "idling" if ignition == 1 else ""
 
 
 def normalize(incident: Optional[str]) -> str:

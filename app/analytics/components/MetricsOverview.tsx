@@ -1,96 +1,66 @@
 'use client';
 
 import {motion} from 'framer-motion';
-import {TrendingUp, TrendingDown, Truck, DollarSign, Package, AlertTriangle} from 'lucide-react';
+import {AlertTriangle, CheckCircle2, IndianRupee, Leaf, RadioTower, ShieldCheck, Truck, Wallet} from 'lucide-react';
+import type {FleetMetrics} from '@/lib/hooks/useWebSocket';
+import {formatINRCompact} from '@/lib/utils/format';
 
-interface Metric {
+interface Card {
     label: string;
     value: string;
-    change: string;
-    trend: 'up' | 'down';
+    hint: string;
     icon: React.ReactNode;
-    color: string;
+    color: 'teal' | 'green' | 'red' | 'amber' | 'blue' | 'slate';
 }
 
-export default function MetricsOverview() {
-    const metrics: Metric[] = [
-        {
-            label: 'Total Deliveries',
-            value: '1,247',
-            change: '+12.5%',
-            trend: 'up',
-            icon: <Package className="w-6 h-6"/>,
-            color: 'teal',
-        },
-        {
-            label: 'Active Trucks',
-            value: '42',
-            change: '+3',
-            trend: 'up',
-            icon: <Truck className="w-6 h-6"/>,
-            color: 'blue',
-        },
-        {
-            label: 'Total Savings',
-            value: '$47,500',
-            change: '+$8,200',
-            trend: 'up',
-            icon: <DollarSign className="w-6 h-6"/>,
-            color: 'green',
-        },
-        {
-            label: 'Incidents Resolved',
-            value: '28',
-            change: '-15%',
-            trend: 'down',
-            icon: <AlertTriangle className="w-6 h-6"/>,
-            color: 'amber',
-        },
+const COLORS: Record<Card['color'], string> = {
+    teal: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
+    green: 'bg-green-500/10 text-green-400 border-green-500/20',
+    red: 'bg-red-500/10 text-red-400 border-red-500/20',
+    amber: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    blue: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    slate: 'bg-slate-500/10 text-slate-300 border-slate-500/20',
+};
+
+export default function MetricsOverview({metrics}: { metrics: FleetMetrics | null }) {
+    const m = metrics;
+    const onTimePct = m && m.trucks ? Math.round(((m.onTime + m.resolved) / m.trucks) * 100) : null;
+
+    const cards: Card[] = [
+        {label: 'Net savings', value: formatINRCompact(m?.netSavings ?? 0), hint: 'from executed decisions',
+            icon: <IndianRupee className="w-5 h-5"/>, color: 'green'},
+        {label: 'Penalties avoided', value: formatINRCompact(m?.penaltiesAvoided ?? 0), hint: 'contract penalties + spoilage',
+            icon: <ShieldCheck className="w-5 h-5"/>, color: 'teal'},
+        {label: 'Money at risk now', value: formatINRCompact(m?.exposure ?? 0), hint: `${m?.critical ?? 0} critical truck(s)`,
+            icon: <AlertTriangle className="w-5 h-5"/>, color: 'red'},
+        {label: 'Decisions executed', value: String(m?.decisions ?? 0), hint: `${m?.actionable ?? 0} waiting for review`,
+            icon: <CheckCircle2 className="w-5 h-5"/>, color: 'blue'},
+        {label: 'Fleet on time', value: onTimePct === null ? '—' : `${onTimePct}%`, hint: `${m?.trucks ?? 0} trucks tracked`,
+            icon: <Truck className="w-5 h-5"/>, color: 'teal'},
+        {label: 'Relief spend', value: formatINRCompact(m?.reliefSpend ?? 0), hint: 'paid to relief carriers',
+            icon: <Wallet className="w-5 h-5"/>, color: 'amber'},
+        {label: 'Extra CO₂', value: `${(m?.extraCo2Kg ?? 0).toFixed(0)} kg`, hint: 'relief trucks driving to pickup',
+            icon: <Leaf className="w-5 h-5"/>, color: 'green'},
+        {label: 'Trackers silent', value: String(m?.signalLost ?? 0), hint: 'no data recently',
+            icon: <RadioTower className="w-5 h-5"/>, color: 'slate'},
     ];
 
-    const getColorClasses = (color: string) => {
-        const colors: Record<string, { bg: string; text: string; border: string }> = {
-            teal: {bg: 'bg-teal-500/10', text: 'text-teal-500', border: 'border-teal-500/20'},
-            blue: {bg: 'bg-blue-500/10', text: 'text-blue-500', border: 'border-blue-500/20'},
-            green: {bg: 'bg-green-500/10', text: 'text-green-500', border: 'border-green-500/20'},
-            amber: {bg: 'bg-amber-500/10', text: 'text-amber-500', border: 'border-amber-500/20'},
-        };
-        return colors[color];
-    };
-
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {metrics.map((metric, index) => {
-                const colors = getColorClasses(metric.color);
-                return (
-                    <motion.div
-                        key={metric.label}
-                        initial={{opacity: 0, y: 20}}
-                        animate={{opacity: 1, y: 0}}
-                        transition={{delay: index * 0.1}}
-                        whileHover={{y: -4}}
-                        className="glass-card rounded-2xl p-6 border hover:border-white/20 transition-all"
-                    >
-                        <div className="flex items-start justify-between mb-4">
-                            <div className={`p-3 rounded-xl ${colors.bg} ${colors.border} border`}>
-                                <div className={colors.text}>{metric.icon}</div>
-                            </div>
-                            <div className={`flex items-center gap-1 text-sm font-semibold ${
-                                metric.trend === 'up' ? 'text-green-400' : 'text-red-400'
-                            }`}>
-                                {metric.trend === 'up' ? (
-                                    <TrendingUp className="w-4 h-4"/>
-                                ) : (
-                                    <TrendingDown className="w-4 h-4"/>
-                                )}
-                                {metric.change}
-                            </div>
-                        </div>
-                        <div className="text-3xl font-bold text-white mb-1 mono-numbers">{metric.value}</div>
-                        <div className="text-sm text-slate-400">{metric.label}</div>
-                    </motion.div>
-                );
-            })}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {cards.map((c, i) => (
+                <motion.div
+                    key={c.label}
+                    initial={{opacity: 0, y: 12}}
+                    animate={{opacity: 1, y: 0}}
+                    transition={{delay: i * 0.04}}
+                    className="glass-card rounded-2xl p-5 border border-white/10"
+                >
+                    <div className={`inline-flex p-2 rounded-lg border mb-3 ${COLORS[c.color]}`}>{c.icon}</div>
+                    <div className="text-2xl font-bold text-white mono-numbers">{c.value}</div>
+                    <div className="text-sm text-slate-300 mt-1">{c.label}</div>
+                    <div className="text-xs text-slate-500 mt-0.5">{c.hint}</div>
+                </motion.div>
+            ))}
         </div>
     );
 }

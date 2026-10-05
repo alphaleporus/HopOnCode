@@ -1,7 +1,7 @@
 'use client';
 
 import {useState, useEffect, useCallback, useRef} from 'react';
-import {Truck, AgentEvent, ArbitrageOpportunity} from '../types';
+import {Truck, AgentEvent, ArbitrageOpportunity, DecisionRecord} from '../types';
 
 export interface FleetMetrics {
     trucks: number;
@@ -9,11 +9,17 @@ export interface FleetMetrics {
     delayed: number;
     critical: number;
     resolved: number;
+    actionable: number;
     exposure: number;
+    cargoValue: number;
+    reliefSpend: number;
     decisions: number;
     netSavings: number;
     penaltiesAvoided: number;
     extraCo2Kg: number;
+    signalLost: number;
+    aiAvailable: boolean;
+    aiEnabled: boolean;
 }
 
 interface WebSocketDataMessage {
@@ -21,6 +27,7 @@ interface WebSocketDataMessage {
     events?: AgentEvent[];
     arbitrage?: ArbitrageOpportunity | null;
     metrics?: FleetMetrics;
+    decisions?: DecisionRecord[];
 }
 
 interface WebSocketMessage {
@@ -35,15 +42,14 @@ interface WebSocketState {
     events: AgentEvent[];
     arbitrageOpportunity: ArbitrageOpportunity | null;
     metrics: FleetMetrics | null;
+    decisions: DecisionRecord[];
     connected: boolean;
     error: string | null;
 }
 
-// Track dismissed/executed arbitrage opportunities to prevent re-showing
+// Opportunities already handled in this session, keyed by incident (a truck can have several incidents)
 const dismissedArbitrageSet = new Set<string>();
-
-// Track trucks that have had arbitrage solutions executed (resolved)
-const resolvedTrucksSet = new Set<string>();
+const opportunityKey = (o: ArbitrageOpportunity) => o.incidentId || o.truckId;
 
 // Track connection time to ignore stale arbitrage from previous runs
 let connectionTimestamp = 0;
@@ -88,6 +94,7 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         arbitrageOpportunity: null,
         connected: false,
         metrics: null,
+        decisions: [],
         error: null,
     });
 
@@ -108,6 +115,8 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
                         ...prev,
                         trucks: data.trucks ? processTrucks(data.trucks) : prev.trucks,
                         events: data.events || prev.events,
+                        metrics: data.metrics || prev.metrics,
+                        decisions: data.decisions || prev.decisions,
                         // Don't set arbitrage from initial state
                     }));
                 }
@@ -124,34 +133,21 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
                         if (data.trucks && data.trucks.length > 0) {
                             newState.trucks = processTrucks(data.trucks);
                         }
+                        if (data.decisions) {
+                            newState.decisions = data.decisions;
+                        }
                         if (data.metrics) {
                             newState.metrics = data.metrics;
                         }
                         
-                        // Update events - filter out critical alerts for resolved trucks
+                        // Backend is the source of truth for incident state, including resolutions
                         if (data.events && data.events.length > 0) {
-                            // Filter out critical events for trucks that have been resolved
-                            newState.events = data.events.filter(event => {
-                                // Check if this is a critical alert for a resolved truck
-                                const isCriticalAlert = event.message.includes('CRITICAL') && event.severity === 'critical';
-                                if (isCriticalAlert) {
-                                    // Extract truck ID from message (format: "⚠️ TRK-402 CRITICAL - ...")
-                                    const truckIdMatch = event.message.match(/TRK-\d+/);
-                                    if (truckIdMatch) {
-                                        const truckId = truckIdMatch[0];
-                                        if (resolvedTrucksSet.has(truckId)) {
-                                            console.log(`🚫 Filtering critical event for resolved truck ${truckId}`);
-                                            return false; // Don't show this event
-                                        }
-                                    }
-                                }
-                                return true; // Show all other events
-                            });
+                            newState.events = data.events;
                         }
-                        
+
                         // Check for arbitrage in the data - but only if fresh and not dismissed
                         if (data.arbitrage && data.arbitrage.truckId) {
-                            const arbitrageKey = data.arbitrage.truckId;
+                            const arbitrageKey = opportunityKey(data.arbitrage);
                             const isFresh = isArbitrageFresh();
                             const isDismissed = dismissedArbitrageSet.has(arbitrageKey);
                             const hasExisting = !!prev.arbitrageOpportunity;
@@ -183,7 +179,7 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
             case 'arbitrage_opportunity':
                 if (message.data && 'truckId' in message.data && isArbitrageFresh()) {
                     const arbitrage = message.data as ArbitrageOpportunity;
-                    const arbitrageKey = arbitrage.truckId;
+                    const arbitrageKey = opportunityKey(arbitrage);
                     
                     // Only show if not already dismissed/executed
                     if (!dismissedArbitrageSet.has(arbitrageKey)) {
@@ -207,6 +203,13 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
                 break;
 
             case 'pong':
+            case 'arbitrage_dismissed':
+            case 'incident_classified':
+            case 'ai_toggled':
+                break;  // reflected in the next state_update
+
+            case 'error':
+                console.warn('Server:', (message as {message?: string}).message);
                 break;
 
             default:
@@ -235,9 +238,9 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
                 }
             };
 
-            ws.onerror = (error) => {
-                console.error('WebSocket error:', error);
-                setState(prev => ({...prev, error: 'WebSocket connection error'}));
+            ws.onerror = () => {
+                // Expected while the backend is starting/restarting; onclose handles retry and messaging
+                console.warn(`WebSocket error (${url}); will retry`);
             };
 
             ws.onclose = () => {
@@ -280,12 +283,9 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
             if (!prev.arbitrageOpportunity) return prev;
 
             const truckId = prev.arbitrageOpportunity.truckId;
-            
-            // Mark this arbitrage as handled so it won't reappear
-            dismissedArbitrageSet.add(truckId);
-            // Mark this truck as resolved - stop showing critical alerts
-            resolvedTrucksSet.add(truckId);
-            console.log(`✅ Arbitrage executed for ${truckId} - status changed to resolved`);
+
+            // Mark this incident's opportunity as handled so it won't reappear
+            dismissedArbitrageSet.add(opportunityKey(prev.arbitrageOpportunity));
 
             if (wsRef.current?.readyState === WebSocket.OPEN) {
                 wsRef.current.send(JSON.stringify({
@@ -329,13 +329,28 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
     const dismissArbitrage = useCallback(() => {
         setState(prev => {
             if (prev.arbitrageOpportunity) {
-                // Mark as dismissed so it won't reappear
-                dismissedArbitrageSet.add(prev.arbitrageOpportunity.truckId);
-                console.log(`❌ Arbitrage dismissed for ${prev.arbitrageOpportunity.truckId} - will not show again`);
+                dismissedArbitrageSet.add(opportunityKey(prev.arbitrageOpportunity));
+                // Record the dismissal server-side too (audit log, removes it from opportunities)
+                if (wsRef.current?.readyState === WebSocket.OPEN) {
+                    wsRef.current.send(JSON.stringify({
+                        type: 'dismiss_arbitrage',
+                        truckId: prev.arbitrageOpportunity.truckId,
+                    }));
+                }
             }
             return {...prev, arbitrageOpportunity: null};
         });
     }, []);
+
+    // Dispatcher (office staff) sets the incident type for a stopped truck
+    const classifyIncident = useCallback((truckId: string, incident: string) => {
+        sendMessage({type: 'classify_incident', truckId, incident});
+    }, [sendMessage]);
+
+    // AI explanations on/off; decisions are deterministic either way
+    const setAiEnabled = useCallback((enabled: boolean) => {
+        sendMessage({type: 'set_ai', enabled});
+    }, [sendMessage]);
 
     useEffect(() => {
         // Subscribing to an external system is what effects are for; connect() only
@@ -348,9 +363,11 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
                 clearTimeout(reconnectTimeoutRef.current);
             }
             if (wsRef.current) {
-                // Detach onclose so an intentional close doesn't schedule a reconnect
-                wsRef.current.onclose = null;
-                wsRef.current.close();
+                // Detach handlers so an intentional close (incl. React dev double-mount) is silent
+                // and doesn't schedule a reconnect
+                const ws = wsRef.current;
+                ws.onopen = ws.onmessage = ws.onerror = ws.onclose = null;
+                ws.close();
             }
         };
     }, [connect]);
@@ -360,6 +377,9 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         events: state.events,
         arbitrageOpportunity: state.arbitrageOpportunity,
         metrics: state.metrics,
+        decisions: state.decisions,
+        classifyIncident,
+        setAiEnabled,
         connected: state.connected,
         error: state.error,
         executeArbitrage,

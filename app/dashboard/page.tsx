@@ -6,10 +6,11 @@ import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Leaf, BarChart3 } from 'lucide-react';
 import { useWebSocket } from '@/lib/hooks/useWebSocket';
-import { formatINR } from '@/lib/utils/format';
+import { formatINRCompact } from '@/lib/utils/format';
 import AgentOverlay from '@/components/dashboard/AgentOverlay';
 import FinancialModal from '@/components/dashboard/FinancialModal';
 import UserMenu from '@/components/dashboard/UserMenu';
+import DispatcherDesk from '@/components/dashboard/DispatcherDesk';
 import Image from 'next/image';
 
 // Dynamic import for map component (Leaflet requires window object)
@@ -33,7 +34,7 @@ const SupplyChainMap = dynamic(() => import('@/components/SupplyChainMap'), {
 
 export default function DashboardPage() {
   const [ecoRouteEnabled, setEcoRouteEnabled] = useState(false);
-  const { trucks, events, arbitrageOpportunity, executeArbitrage, dismissArbitrage, connected, error, metrics } = useWebSocket();
+  const { trucks, events, arbitrageOpportunity, executeArbitrage, dismissArbitrage, connected, error, metrics, classifyIncident, setAiEnabled } = useWebSocket();
   const onTimePct = metrics && metrics.trucks ? Math.round(((metrics.onTime + metrics.resolved) / metrics.trucks) * 100) : null;
 
   // Calculate total cargo value
@@ -61,6 +62,9 @@ export default function DashboardPage() {
                     className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white transition-colors">
                     <BarChart3 className="w-5 h-5"/><span className="font-medium">Analytics</span></div></Link>
         </nav>
+        <div className="mt-6 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100vh - 420px)' }}>
+          <DispatcherDesk trucks={trucks} onClassify={classifyIncident} />
+        </div>
         <div className="absolute bottom-6 left-6 right-6">
           <div className="glass-card p-4 rounded-lg">
             <div className="text-xs text-slate-500 uppercase mb-2">System Status</div>
@@ -75,6 +79,22 @@ export default function DashboardPage() {
                 {error}
               </div>
             )}
+            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
+              <div>
+                <div className="text-xs text-slate-400">AI explanations</div>
+                <div className="text-[10px] text-slate-500">
+                  {!metrics?.aiAvailable ? 'No local model · deterministic mode' : metrics.aiEnabled ? 'On · decisions unchanged' : 'Off · decisions unchanged'}
+                </div>
+              </div>
+              <button
+                aria-label="Toggle AI explanations"
+                disabled={!metrics?.aiAvailable}
+                onClick={() => setAiEnabled(!metrics?.aiEnabled)}
+                className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-40 ${metrics?.aiEnabled ? 'bg-teal-500' : 'bg-slate-700'}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${metrics?.aiEnabled ? 'translate-x-4' : ''}`} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -98,9 +118,9 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-4 gap-4 mt-4">
             <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Active</div><div className="text-2xl font-bold text-white mono-numbers">{trucks.length}</div></div>
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Cargo</div><div className="text-2xl font-bold text-teal-400 mono-numbers">{formatINR(totalCargoValue)}</div></div>
+            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Cargo</div><div className="text-2xl font-bold text-teal-400 mono-numbers">{formatINRCompact(totalCargoValue)}</div></div>
             <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">On-Time</div><div className="text-2xl font-bold text-cyan-400 mono-numbers">{onTimePct === null ? '—' : `${onTimePct}%`}</div></div>
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Saved</div><div className="text-2xl font-bold text-orange-400 mono-numbers">{formatINR(metrics?.netSavings ?? 0)}</div></div>
+            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Saved</div><div className="text-2xl font-bold text-orange-400 mono-numbers">{formatINRCompact(metrics?.netSavings ?? 0)}</div></div>
           </div>
         </div>
 

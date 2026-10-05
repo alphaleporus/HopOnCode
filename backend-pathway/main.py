@@ -116,17 +116,18 @@ def main():
 
     # ---- Outputs -------------------------------------------------------------------------
     def on_command(cmd: dict):
-        option = cmd.pop("_option")
+        option = cmd.pop("_option", None)
         command_subject.push(cmd)
-        if sim and cmd["action"] == "execute":
+        if sim and cmd["action"] == "execute" and option:
             handover_min = option["handover_hours"] * 60
             sim.dispatch_relief(cmd["truck_id"], pickup_eta_min=handover_min, transfer_min=0,
                                 speed_kmh=option["speed_kmh"])
-        print(f"🎯 {cmd['action']} {cmd['truck_id']} via {cmd['provider'] or '-'} "
+        print(f"🎯 {cmd['action']} {cmd['truck_id']} {cmd.get('label') or cmd['provider'] or '-'} "
               f"(net saving {cmd['net_savings']:,.0f})")
 
     hub = RealtimeHub(host=os.getenv("WEBSOCKET_HOST", "localhost"), port=int(os.getenv("WEBSOCKET_PORT", "8765")),
                       on_command=on_command)
+    hub.ai_available = explainer is not None
     for name, table in [("fleet", out.fleet), ("fleet_kpis", out.fleet_kpis), ("impact", out.impact),
                         ("explanations", out.explanations)]:
         if table is not None:

@@ -10,11 +10,13 @@ telemetry arrives.
 Message contract (backward compatible with the existing frontend):
     server → client  initial_state | state_update   {trucks, events, arbitrage, opportunities, metrics}
                      arbitrage_executed | arbitrage_dismissed | error | pong
-    client → server  execute_arbitrage {truckId} | dismiss_arbitrage {truckId} | ping
+    client → server  execute_arbitrage {truckId} | dismiss_arbitrage {truckId}
+                     classify_incident {truckId, incident} | set_ai {enabled} | ping
 """
 
 import asyncio
 import json
+import os
 import threading
 import time
 from collections import deque
@@ -27,6 +29,8 @@ import websockets
 from core.money import fmt
 
 EXECUTE, CONSIDER = "EXECUTE", "CONSIDER"
+# Incident types a dispatcher may assign ("" = clear back to unexplained)
+CLASSIFIABLE = {"breakdown", "accident", "flat_tyre", "traffic", "weather", "checkpoint", "idling", ""}
 
 
 def _plain(v):
@@ -78,12 +82,20 @@ class RealtimeHub:
         self.impact = _TableView()
         self.explanations = _TableView()
         self.events: deque = deque(maxlen=max_events)
+        self.decisions: deque = deque(maxlen=200)  # operator decisions, newest first (full log: output/decisions.jsonl)
         self._prev: Dict[str, Dict] = {}   # truck_id -> last seen decision (for event derivation)
         self._dirty = False
         self._clients = set()
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._started = time.time()
         self._updates = 0
+        # Signal-lost detection runs on the wall clock: a silent tracker produces no events at all
+        self.signal_lost_s = float(os.getenv("SIGNAL_LOST_SECONDS", "30"))
+        self._last_seen: Dict[str, tuple] = {}  # truck_id -> (readings, wall time the count last changed)
+        self._lost: set = set()
+        # AI is optional: explanations shown only if a model is reachable AND the operator leaves it on
+        self.ai_available = False
+        self.ai_enabled = True
 
     # ---- Pathway callbacks (Pathway worker threads) ---------------------------------------
     def subscriber(self, view: str):
@@ -108,12 +120,16 @@ class RealtimeHub:
             tid = d["truck_id"]
             prev = self._prev.get(tid)
             self._updates += 1
+            seen = self._last_seen.get(tid)
+            if seen is None or seen[0] != d.get("readings"):
+                self._last_seen[tid] = (d.get("readings"), time.time())
             if prev is None:
                 self._prev[tid] = d
                 if d["status"] != "on-time":
                     self._event_for_status(d, row)
                 continue
-            if d.get("incident") and d["incident"] != prev.get("incident"):
+            if d.get("incident") and d["incident"] != prev.get("incident") \
+                    and d.get("incident_source") != "dispatcher":  # dispatcher changes are logged when made
                 self._event("sensor", f"📟 {tid} telematics signal → {d['incident'].replace('_', ' ')}", "warning")
             if d["status"] != prev["status"]:
                 self._event_for_status(d, row)
@@ -147,23 +163,36 @@ class RealtimeHub:
 
     # ---- Snapshot ---------------------------------------------------------------------------
     def _explanation_for(self, incident_id: str) -> Optional[str]:
+        if not (self.ai_available and self.ai_enabled):
+            return None
         for row in self.explanations.rows.values():
             if row.get("incident_id") == incident_id and isinstance(row.get("explanation"), str) \
                     and row["explanation"].strip():
                 return row["explanation"].strip()
         return None
 
+    def _silence_s(self, tid: str) -> float:
+        seen = self._last_seen.get(tid)
+        return time.time() - seen[1] if seen else 0.0
+
     def _truck_json(self, row: Dict) -> Dict:
         d = row["decision"]
         route = json.loads(row["route"])
+        lost = d["truck_id"] in self._lost
+        silent_min = self._silence_s(d["truck_id"]) / 60
         return {
             "id": d["truck_id"], "driver": row["driver"], "cargoValue": row["cargo_value"],
-            "status": d["status"], "velocity": round(d["speed_kmh"], 1),
+            "status": "signal-lost" if lost else d["status"], "velocity": round(d["speed_kmh"], 1),
+            "stopped": d["stopped"], "stoppedMinutes": d["stopped_minutes"], "incidentId": d["incident_id"],
+            "incidentSource": d.get("incident_source", ""), "silentMinutes": round(silent_min, 1) if lost else 0,
             "position": [d["lon"], d["lat"]], "destination": route[-1], "route": route,
             "contractId": row["contract_id"], "eta": _iso(d["ts"] + d["eta_hours"] * 3600),
             "etaHours": d["eta_hours"], "slackHours": d["slack_hours"], "remainingKm": d["remaining_km"],
             "latenessHours": d["lateness_hours"], "exposure": d["exposure"], "incident": d["incident"],
-            "recommendation": d["recommendation"], "summary": d["summary"],
+            "recommendation": "CHECK_TRACKER" if lost else d["recommendation"],
+            "summary": (f"No data from {d['truck_id']}'s tracker for "
+                        f"{f'{silent_min:.0f} min' if silent_min >= 1 else f'{silent_min * 60:.0f} s'}; last known position shown. "
+                        f"Contact the carrier's dispatcher.") if lost else d["summary"],
         }
 
     def _opportunity_json(self, row: Dict) -> Dict:
@@ -184,7 +213,8 @@ class RealtimeHub:
             rows = sorted(self.fleet.rows.values(), key=lambda r: r["decision"]["truck_id"])
             opportunities = sorted(
                 (self._opportunity_json(r) for r in rows
-                 if r["decision"]["recommendation"] in (EXECUTE, CONSIDER) and not r["decision"]["dismissed"]),
+                 if r["decision"]["recommendation"] in (EXECUTE, CONSIDER) and not r["decision"]["dismissed"]
+                 and r["decision"]["truck_id"] not in self._lost),
                 key=lambda o: -o["netSavings"])
             kpis = next(iter(self.fleet_kpis.rows.values()), {})
             impact = next(iter(self.impact.rows.values()), {})
@@ -194,12 +224,13 @@ class RealtimeHub:
                 "events": list(self.events)[:20],
                 "arbitrage": next((o for o in opportunities if o["recommendation"] == EXECUTE), None),
                 "opportunities": opportunities,
+                "decisions": list(self.decisions)[:50],
                 "metrics": {
                     "trucks": kpis.get("trucks", 0), "onTime": kpis.get("on_time", 0),
                     "delayed": kpis.get("delayed", 0), "critical": kpis.get("critical", 0),
                     "resolved": kpis.get("resolved", 0), "actionable": kpis.get("actionable", 0),
-                    "exposure": round(kpis.get("exposure", 0.0), 2),
-                    "cargoValue": kpis.get("cargo_value", 0.0),
+                    "exposure": round(kpis.get("exposure_paise", 0) / 100, 2),
+                    "cargoValue": kpis.get("cargo_value_paise", 0) / 100,
                     "decisions": impact.get("decisions", 0),
                     "netSavings": round(impact.get("net_savings", 0.0), 2),
                     "penaltiesAvoided": round(impact.get("penalties_avoided", 0.0), 2),
@@ -207,11 +238,59 @@ class RealtimeHub:
                     "extraCo2Kg": round(impact.get("extra_co2_kg", 0.0), 1),
                     "telemetryReadings": sum(r["decision"].get("readings", 0) for r in rows),
                     "truckUpdatesPerSec": round(self._updates / uptime, 1) if uptime else 0,
+                    "signalLost": len(self._lost),
+                    "aiAvailable": self.ai_available,
+                    "aiEnabled": self.ai_enabled and self.ai_available,
                 },
                 "timestamp": _iso(time.time()),
             }
 
     # ---- Commands -----------------------------------------------------------------------
+    def _handle_classify(self, msg: Dict) -> Dict:
+        """Dispatcher (office staff) sets the incident type for a stopped truck."""
+        truck_id, label = msg.get("truckId"), str(msg.get("incident", "")).strip().lower()
+        if label not in CLASSIFIABLE:
+            return {"type": "error", "message": f"Unknown incident type '{label}'"}
+        with self.lock:
+            row = next((r for r in self.fleet.rows.values() if r["decision"]["truck_id"] == truck_id), None)
+            if row is None or not row["decision"]["incident_id"]:
+                return {"type": "error", "message": f"{truck_id} is not stopped"}
+            d = row["decision"]
+            cmd = {"truck_id": truck_id, "incident_id": d["incident_id"], "action": "classify", "ts": d["ts"],
+                   "provider": "", "cost": 0.0, "net_savings": 0.0, "penalty_avoided": 0.0,
+                   "extra_co2_kg": 0.0, "label": label}
+            self._event("system", f"🧑‍💼 Dispatcher classified {truck_id} stop as "
+                                  f"{label.replace('_', ' ') or 'unexplained'}", "info")
+            self._dirty = True
+        if self.on_command:
+            self.on_command(cmd)
+        return {"type": "incident_classified", "truckId": truck_id, "incident": label,
+                "timestamp": _iso(time.time())}
+
+    def _handle_set_ai(self, msg: Dict) -> Dict:
+        with self.lock:
+            self.ai_enabled = bool(msg.get("enabled", True))
+            self._event("system", f"🧠 AI explanations {'enabled' if self.ai_enabled else 'disabled'} "
+                                  f"- decisions unchanged (deterministic engine)", "info")
+            self._dirty = True
+        return {"type": "ai_toggled", "enabled": self.ai_enabled, "timestamp": _iso(time.time())}
+
+    def _check_signal_lost(self):
+        """Flag trucks whose tracker has gone quiet; emit events on transitions."""
+        now = time.time()
+        with self.lock:
+            for tid, (_, last) in self._last_seen.items():
+                silent = now - last > self.signal_lost_s
+                if silent and tid not in self._lost:
+                    self._lost.add(tid)
+                    self._event("alert", f"📡 {tid} SIGNAL LOST - no tracker data for {now - last:.0f} s",
+                                "critical")
+                    self._dirty = True
+                elif not silent and tid in self._lost:
+                    self._lost.discard(tid)
+                    self._event("system", f"📡 {tid} tracker back online", "info")
+                    self._dirty = True
+
     def _handle_command(self, msg: Dict) -> Dict:
         action = {"execute_arbitrage": "execute", "dismiss_arbitrage": "dismiss"}[msg["type"]]
         truck_id = msg.get("truckId")
@@ -233,6 +312,13 @@ class RealtimeHub:
                 "extra_co2_kg": best["extra_co2_kg"] if action == "execute" else 0.0,
                 "_option": best,
             }
+            self.decisions.appendleft({
+                "id": f"dec-{time.time_ns()}", "time": _iso(time.time()), "truckId": truck_id,
+                "contractId": row["contract_id"], "incident": d["incident"], "action": action,
+                "option": best["label"], "exposure": d["exposure"], "cost": cmd["cost"],
+                "netSavings": cmd["net_savings"], "penaltyAvoided": round(cmd["penalty_avoided"], 2),
+                "extraCo2Kg": cmd["extra_co2_kg"], "currency": d["currency"],
+            })
         if self.on_command:
             self.on_command(cmd)
         return {"type": "arbitrage_executed" if action == "execute" else "arbitrage_dismissed",
@@ -248,8 +334,11 @@ class RealtimeHub:
                     msg = json.loads(raw)
                     if msg.get("type") == "ping":
                         await ws.send(json.dumps({"type": "pong", "timestamp": _iso(time.time())}))
-                    elif msg.get("type") in ("execute_arbitrage", "dismiss_arbitrage"):
-                        reply = self._handle_command(msg)
+                    elif msg.get("type") in ("execute_arbitrage", "dismiss_arbitrage", "classify_incident",
+                                             "set_ai"):
+                        handler = {"classify_incident": self._handle_classify,
+                                   "set_ai": self._handle_set_ai}.get(msg["type"], self._handle_command)
+                        reply = handler(msg)
                         if reply["type"] == "error":
                             await ws.send(json.dumps(reply))
                         else:
@@ -270,6 +359,7 @@ class RealtimeHub:
     async def _ticker(self):
         while True:
             await asyncio.sleep(self.interval)
+            self._check_signal_lost()
             with self.lock:
                 dirty, self._dirty = self._dirty, False
             if dirty and self._clients:

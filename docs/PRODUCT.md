@@ -62,14 +62,16 @@
 | Data | How it's produced now | File | Realism |
 |---|---|---|---|
 | **Truck telemetry** | `FleetSimulator`: 3 hand-made demo trucks plus any number of generated trucks between 15 Indian cities. Lanes are limited to those a contract SLA can serve. One reading per truck per second, simulated clock with speed-up, constant cruise speed ±jitter, straight lines between 4 waypoints. | `connectors/fleet_simulator.py` | Low to medium |
-| **Incidents** | Scripted timeline (`data/scenarios/demo.json`: stop at T+5 s, engine fault P0217 at T+9 s) plus random incidents (Poisson rate per truck-hour). Each type is emitted as a *machine signal*: fault code, crash flag, or an external label. | `fleet_simulator.py`, `data/scenarios/` | Medium |
+| **Incidents** | Scripted timeline (`data/scenarios/demo.json`: TRK-402 stops at T+5 s, engine fault P0217 at T+9 s; TRK-518's tracker goes silent at T+25 s and returns at T+90 s) plus random incidents (Poisson rate per truck-hour). Each type is emitted as a *machine signal*: fault code, crash flag, or an external label. | `fleet_simulator.py`, `data/scenarios/` | Medium |
 | **Truck registry** | Driver, contract, cargo value, route, emitted once by the simulator. | `fleet_simulator.py` | Low |
 | **Contracts** | 3 hand-written JSON files: SLA, grace period, ₹ penalty per hour, cap, cold-chain limits, force majeure, relief carrier offers. Hot-reloaded. | `data/contracts/*.json` | Medium; penalty rates are **illustrative** |
 | **Relief carrier quotes** | Static offers inside each contract, anchored to real ₹45–85/km full-truckload rates plus an emergency premium. | `data/contracts/*.json` | Medium |
 | **Incident durations** | Hand-set typical durations per type, plus a duration rule for unexplained stops. | `core/incidents.py` | Assumption |
 | **CO₂ factor** | Flat 0.9 kg/km for a laden diesel truck. | `core/config.py` | Assumption |
 | **Real-device path** | Already live: `POST /telemetry`, `POST /trucks` (port 8090). | `main.py`, `pipeline/graph.py` | Real |
-| **Frontend extras** | Analytics page, public tracking page and landing feature cards still use **mock/random data**. | `app/analytics`, `app/track`, `components/landing` | Mock |
+| **Analytics page** | Live from the backend: savings, penalties avoided, money at risk, fleet status, decision log, CSV/JSON export. | `app/analytics` | Real (this session) |
+| **Landing page figures** | Fixed figures from the demo scenario, labelled as an example. | `components/landing` | Example |
+| **Public tracking page** | Still **mock data**. | `app/track` | Mock |
 
 **Sourced market figures used in copy and calibration**
 
@@ -128,8 +130,8 @@
 | Recommendation levels EXECUTE / CONSIDER / MONITOR with confidence | ✅ | — |
 | Configurable thresholds (env) | ✅ | — |
 | INR with Indian number formatting | ✅ | — |
-| **Signal-lost status** (tracker silent for N minutes) | ⬜ | **P0** |
-| Use **ignition on/off** as a signal (basic AIS-140 tier) | ⬜ | **P0** |
+| **Signal-lost status** (tracker silent for `SIGNAL_LOST_SECONDS`), alert + "contact carrier dispatcher" | ✅ | — |
+| **Ignition on/off** signal (basic AIS-140 tier): engine on while stopped → idling in a queue | ✅ | — |
 | **Own idle trucks as relief options** (internal swap, zero market cost) | ⬜ | P1 |
 | Relief vehicle compatibility (reefer, capacity, permits) | ⬜ | P1 |
 | Reroute option for traffic/closures (moving trucks) | ⬜ | P2 |
@@ -142,7 +144,7 @@
 |---|---|---|
 | Inference from machine signals: fault code → breakdown/flat tyre, crash sensor → accident, external label → weather/checkpoint, else unexplained stop | ✅ | — |
 | Unexplained-stop duration estimate (no signal needed) | ✅ | — |
-| **Dispatcher override** of the incident type from the dashboard (office staff, not the driver) | ⬜ | **P0** |
+| **Dispatcher desk:** office staff see every stopped or silent truck and can override the incident type; the engine re-prices instantly | ✅ | — |
 | Geofence inference (toll plaza, checkpoint, depot, fuel station from OSM) | ⬜ | P1 |
 | Weather inference (Open-Meteo at the truck's location) | ⬜ | P1 |
 | Fleet-wide slowdown on the same road stretch → traffic | ⬜ | P2 |
@@ -156,6 +158,7 @@
 | HTTP ingest for real devices (`/telemetry`, `/trucks`) | ✅ | — |
 | Operator decisions streamed back in; impact KPIs; audit log (JSONL) | ✅ | — |
 | Benchmark: 3,000 trucks/s on one laptop; 5,000 with 4 workers at 94% | ✅ | — |
+| Fleet money totals summed in integer paise (works around a Pathway 0.33 float-sum issue with live updates; covered by a regression test) | ✅ | — |
 | Verify the HTTP ingest path doesn't grow memory without limit under load | ⬜ | P1 |
 | Kafka/Redpanda ingest for buffering and replay | ⬜ | P2 |
 | Pathway persistence (state survives restarts) | ⬜ | P2 |
@@ -179,9 +182,9 @@
 
 | Feature | Status | Priority |
 |---|---|---|
-| Plain-language explanations via local LLM (Ollama), async and cached, once per incident | ✅ | — |
+| Plain-language explanations via local LLM (Ollama), async and cached, once per incident | 🟡 built, not yet run against a real model | **P0** (install Ollama and verify) |
 | Deterministic fallback; runs with `LLM_ENABLED=false` | ✅ | — |
-| **"AI on/off" indicator and live toggle in the dashboard** (demo answer to "what if AI disappears") | ⬜ | **P0** |
+| **"AI on/off" indicator and live toggle in the dashboard** (demo answer to "what if AI disappears") | ✅ | — |
 | Contract PDF → JSON extraction, with a human confirming | ⬜ | P1 |
 | Explanations cite the contract clause (retrieval over contract text with local embeddings) | ⬜ | P2 |
 | Check that numbers quoted by the LLM match the engine's numbers | ⬜ | P2 |
@@ -196,11 +199,12 @@
 | Clear "backend offline" banner; reconnect forever | ✅ | — |
 | Self-hosted fonts (no Google Fonts fetch; works offline) | ✅ | — |
 | Copy repositioned: decision engine, no AI/driver dependency, sourced stats | ✅ | — |
-| **Popups keyed by incident** (today a truck can only show one popup per session) | ⬜ | **P0** |
-| **Show all options in the popup** (wait vs each carrier: cost, arrival, reliability) | ⬜ | **P0** |
-| Impact panel: savings, penalties avoided, relief spend, extra CO₂ | ⬜ | **P0** |
+| **Popups keyed by incident** (a truck can raise a new popup for a new incident); dismissals recorded server-side | ✅ | — |
+| **All options in the popup**: wait vs each carrier with price, arrival, lateness, reliability, expected total cost | ✅ | — |
+| Impact panel (Analytics): savings, penalties avoided, money at risk, relief spend, extra CO₂, silent trackers | ✅ | — |
 | Opportunities list (all actionable trucks, not just the top one) | ⬜ | P1 |
-| Replace mock analytics with real decision history | ⬜ | P1 |
+| Analytics on real data, with decision log and exports | ✅ | — |
+| Persist decision history across restarts (today: this session + `output/decisions.jsonl`) | ⬜ | P1 |
 | Public tracking page on live data | ⬜ | P2 |
 | Send routes once, then positions only (payload is ~0.6 MB/update at 1k trucks) | ⬜ | P1 |
 | Rename `middleware.ts` → `proxy.ts` (Next 16 deprecation) | ⬜ | P3 |
@@ -226,10 +230,10 @@
 ## 5. Recommended order of work (by priority, not dates)
 
 **P0: core story and demo credibility**
-1. Signal-lost status + ignition signal (basic AIS-140 tier)
-2. Dispatcher override of the incident type
-3. AI on/off indicator and toggle
-4. Frontend: incident-keyed popups, all-options comparison, impact panel
+1. ~~Signal-lost status + ignition signal~~ ✅
+2. ~~Dispatcher override of the incident type~~ ✅
+3. ~~AI on/off indicator and toggle~~ ✅
+4. ~~Frontend: incident-keyed popups, all-options comparison, impact panel~~ ✅
 5. Adapter interface + mock SAP-style TMS adapter + Traccar telematics adapter
 6. Auth on WebSocket and ingest (before anything is exposed outside localhost)
 

@@ -1,39 +1,22 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { motion, useMotionValue, useTransform, animate } from 'framer-motion';
 import { MapPin, TrendingUp, Leaf, Shield } from 'lucide-react';
 
-function generateDailyMetrics() {
-  const today = new Date().toDateString();
-  const savedData = typeof window !== 'undefined' ? localStorage.getItem('metricsDate') : null;
-  
-  if (savedData !== today) {
-    const newMetrics = {
-      activeTrucks: Math.floor(Math.random() * 3) + 3,
-      cargoValue: Math.floor(Math.random() * 100000) + 400000,
-      onTimeRate: Math.floor(Math.random() * 3) + 96,
-      penaltyCost: Math.floor(Math.random() * 1000) + 2000,
-      solutionCost: Math.floor(Math.random() * 400) + 600,
-      carbonCredits: Math.floor(Math.random() * 100) + 400,
-      date: today
-    };
-    
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('dailyMetrics', JSON.stringify(newMetrics));
-      localStorage.setItem('metricsDate', today);
-    }
-    
-    return newMetrics;
-  }
-  
-  const saved = typeof window !== 'undefined' ? localStorage.getItem('dailyMetrics') : null;
-  return saved ? JSON.parse(saved) : { activeTrucks: 4, cargoValue: 450000, onTimeRate: 98, penaltyCost: 2500, solutionCost: 800, carbonCredits: 450, date: today };
-}
+// Figures from the live demo scenario (TRK-402 engine fault, Pune → Mumbai, just-in-time contract)
+const DEMO = {
+  activeTrucks: 3,
+  cargoLakh: 250,          // ₹2.5 crore across the demo fleet
+  driverActions: 0,
+  doNothingCost: 38282,    // projected penalty if we wait for recovery
+  bestFixCost: 15766,      // relief truck price + remaining risk, weighted by reliability
+  extraCo2Kg: 25,          // relief truck driving to the pickup point
+};
 
 function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; prefix?: string; suffix?: string; }) {
   const count = useMotionValue(0);
-  const rounded = useTransform(count, (latest) => prefix + latest.toLocaleString('en-US') + suffix);
+  const rounded = useTransform(count, (latest) => prefix + Math.round(latest).toLocaleString('en-IN') + suffix);
 
   useEffect(() => {
     const controls = animate(count, value, { duration: 2, ease: 'easeOut' });
@@ -44,14 +27,8 @@ function AnimatedCounter({ value, prefix = '', suffix = '' }: { value: number; p
 }
 
 export default function FeatureCards() {
-  const [metrics, setMetrics] = useState(generateDailyMetrics());
-
-  useEffect(() => {
-    const interval = setInterval(() => setMetrics(generateDailyMetrics()), 3600000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const netSavings = metrics.penaltyCost - metrics.solutionCost;
+  const metrics = DEMO;
+  const netSavings = metrics.doNothingCost - metrics.bestFixCost;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -63,24 +40,24 @@ export default function FeatureCards() {
             <MapPin className="w-12 h-12 text-teal-400" />
           </motion.div>
           <h3 className="text-3xl font-bold text-white mb-4">Real-Time Visibility</h3>
-          <p className="text-slate-400 text-lg leading-relaxed mb-8">Track every shipment with sub-second precision. Reads the GPS and engine signals your trucks already send. No driver input.</p>
+          <p className="text-slate-400 text-lg leading-relaxed mb-8">Know within seconds when a truck stops. Reads the GPS and engine signals your trucks already send. No driver input.</p>
           <div className="grid grid-cols-3 gap-4">
             <motion.div whileHover={{ scale: 1.05 }} className="glass-card p-5 rounded-xl border border-teal-500/20">
               <div className="text-4xl font-bold text-white mono-numbers mb-2"><AnimatedCounter value={metrics.activeTrucks} /></div>
               <div className="text-xs text-slate-500 uppercase">Active Trucks</div>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} className="glass-card p-5 rounded-xl border border-teal-500/20">
-              <div className="text-4xl font-bold text-teal-400 mono-numbers mb-2"><AnimatedCounter value={metrics.cargoValue / 1000} prefix="$" suffix="K" /></div>
+              <div className="text-4xl font-bold text-teal-400 mono-numbers mb-2"><AnimatedCounter value={metrics.cargoLakh} prefix="₹" suffix=" L" /></div>
               <div className="text-xs text-slate-500 uppercase">Cargo Value</div>
             </motion.div>
             <motion.div whileHover={{ scale: 1.05 }} className="glass-card p-5 rounded-xl border border-green-500/20">
-              <div className="text-4xl font-bold text-green-400 mono-numbers mb-2"><AnimatedCounter value={metrics.onTimeRate} suffix="%" /></div>
-              <div className="text-xs text-slate-500 uppercase">On-Time</div>
+              <div className="text-4xl font-bold text-green-400 mono-numbers mb-2"><AnimatedCounter value={metrics.driverActions} /></div>
+              <div className="text-xs text-slate-500 uppercase">Driver Actions</div>
             </motion.div>
           </div>
           <div className="mt-4 text-xs text-slate-600 flex items-center gap-2">
             <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }} className="w-2 h-2 bg-teal-500 rounded-full" />
-            <span>Live data • Updates every 24h</span>
+            <span>Example figures from the live demo</span>
           </div>
         </div>
       </motion.div>
@@ -92,22 +69,22 @@ export default function FeatureCards() {
           <motion.div whileHover={{ rotate: 360, scale: 1.1 }} transition={{ duration: 0.6 }} className="inline-block p-4 rounded-2xl bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 mb-6">
             <TrendingUp className="w-12 h-12 text-orange-400" />
           </motion.div>
-          <h3 className="text-3xl font-bold text-white mb-4">Financial Arbitrage</h3>
+          <h3 className="text-3xl font-bold text-white mb-4">Cheapest Fix, Priced</h3>
           <p className="text-slate-400 leading-relaxed mb-8">Detects delays, prices contract penalties, and compares every recovery option by expected cost.</p>
           <div className="space-y-6">
             <div className="flex items-center justify-between p-4 rounded-xl bg-red-500/5 border border-red-500/20">
-              <span className="text-sm text-slate-400">Penalty Cost</span>
-              <span className="text-2xl font-bold text-red-400 mono-numbers"><AnimatedCounter value={metrics.penaltyCost} prefix="-$" /></span>
+              <span className="text-sm text-slate-400">Do nothing</span>
+              <span className="text-2xl font-bold text-red-400 mono-numbers"><AnimatedCounter value={metrics.doNothingCost} prefix="-₹" /></span>
             </div>
             <div className="flex items-center justify-between p-4 rounded-xl bg-orange-500/5 border border-orange-500/20">
-              <span className="text-sm text-slate-400">Solution Cost</span>
-              <span className="text-2xl font-bold text-orange-400 mono-numbers"><AnimatedCounter value={metrics.solutionCost} prefix="$" /></span>
+              <span className="text-sm text-slate-400">Best fix (relief truck)</span>
+              <span className="text-2xl font-bold text-orange-400 mono-numbers"><AnimatedCounter value={metrics.bestFixCost} prefix="₹" /></span>
             </div>
             <div className="h-px bg-gradient-to-r from-transparent via-slate-700 to-transparent" />
             <div className="flex items-center justify-between p-6 rounded-2xl bg-gradient-to-br from-teal-500/10 to-transparent border-2 border-teal-500/30">
-              <span className="text-base font-semibold text-white">Net Savings</span>
+              <span className="text-base font-semibold text-white">Saved</span>
               <motion.span animate={{ scale: [1, 1.05, 1] }} transition={{ duration: 1.5, repeat: Infinity }} className="text-4xl font-black text-teal-400 neon-teal mono-numbers">
-                <AnimatedCounter value={netSavings} prefix="+$" />
+                <AnimatedCounter value={netSavings} prefix="+₹" />
               </motion.span>
             </div>
           </div>
@@ -121,11 +98,11 @@ export default function FeatureCards() {
           <motion.div whileHover={{ rotate: 360, scale: 1.1 }} transition={{ duration: 0.6 }} className="inline-block p-4 rounded-2xl bg-gradient-to-br from-green-500/20 to-emerald-500/20 border border-green-500/30 mb-6">
             <Leaf className="w-12 h-12 text-green-400" />
           </motion.div>
-          <h3 className="text-2xl font-bold text-white mb-4">Carbon Credits</h3>
-          <p className="text-slate-400 leading-relaxed mb-6">Eco-routes that earn you money while saving the planet.</p>
+          <h3 className="text-2xl font-bold text-white mb-4">Carbon Shown Upfront</h3>
+          <p className="text-slate-400 leading-relaxed mb-6">Every fix shows the extra emissions it causes before anyone approves it.</p>
           <motion.div whileHover={{ scale: 1.05 }} className="glass-card p-6 rounded-2xl border-2 border-green-500/20">
-            <div className="text-5xl font-black text-green-400 mono-numbers mb-2"><AnimatedCounter value={metrics.carbonCredits} prefix="+$" /></div>
-            <div className="text-sm text-slate-500">Credits Earned Today</div>
+            <div className="text-5xl font-black text-green-400 mono-numbers mb-2"><AnimatedCounter value={metrics.extraCo2Kg} prefix="+" suffix=" kg" /></div>
+            <div className="text-sm text-slate-500">Extra CO₂ for the demo fix</div>
           </motion.div>
         </div>
       </motion.div>
@@ -139,14 +116,10 @@ export default function FeatureCards() {
           </motion.div>
           <h3 className="text-2xl font-bold text-white mb-4">Contract Intelligence</h3>
           <p className="text-slate-400 leading-relaxed mb-6">Every decision follows your contract terms: grace periods, caps, cold-chain limits, force majeure.</p>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-                <motion.div initial={{ width: 0 }} animate={{ width: '87%' }} transition={{ delay: 1.5, duration: 1.5 }} className="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full" />
-              </div>
-              <span className="text-sm text-blue-400 mono-numbers">87%</span>
-            </div>
-            <p className="text-xs text-slate-500">Contracts analyzed & optimized</p>
+          <div className="flex flex-wrap gap-2">
+            {['Deadline & grace period', 'Penalty per hour & cap', 'Cold-chain limit', 'Force majeure'].map(term => (
+              <span key={term} className="text-xs px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-300">{term}</span>
+            ))}
           </div>
         </div>
       </motion.div>

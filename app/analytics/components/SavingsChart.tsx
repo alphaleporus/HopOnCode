@@ -1,92 +1,46 @@
 'use client';
 
-import {AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer} from 'recharts';
+import {Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis} from 'recharts';
+import type {DecisionRecord} from '@/lib/types';
+import {formatINR, formatINRCompact} from '@/lib/utils/format';
 
-const data = [
-    {month: 'Jan', savings: 2400, penalties: 4000},
-    {month: 'Feb', savings: 3800, penalties: 3900},
-    {month: 'Mar', savings: 4200, penalties: 3400},
-    {month: 'Apr', savings: 5100, penalties: 2800},
-    {month: 'May', savings: 6500, penalties: 2200},
-    {month: 'Jun', savings: 8200, penalties: 1800},
-];
+/** Cumulative net savings across executed decisions, oldest to newest. */
+export default function SavingsChart({decisions}: { decisions: DecisionRecord[] }) {
+    const executed = decisions.filter(d => d.action === 'execute').slice().reverse();
+    const data = executed.map((d, i) => ({
+        label: new Date(d.time).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}),
+        truck: d.truckId,
+        saved: Math.round(executed.slice(0, i + 1).reduce((sum, x) => sum + x.netSavings, 0)),
+    }));
 
-export default function SavingsChart() {
     return (
         <div className="glass-card rounded-2xl p-6 border border-white/10">
-            <div className="mb-6">
-                <h3 className="text-xl font-bold text-white mb-2">Cost Savings Over Time</h3>
-                <p className="text-sm text-slate-400">Monthly arbitrage savings vs potential penalties</p>
-            </div>
-
-            <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={data}>
-                    <defs>
-                        <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
-                        </linearGradient>
-                        <linearGradient id="colorPenalties" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3}/>
-                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
-                        </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)"/>
-                    <XAxis dataKey="month" stroke="#94a3b8" style={{fontSize: '12px'}}/>
-                    <YAxis stroke="#94a3b8" style={{fontSize: '12px'}}/>
-                    <Tooltip
-                        contentStyle={{
-                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                            border: '1px solid rgba(255,255,255,0.2)',
-                            borderRadius: '8px',
-                            color: '#ffffff',
-                            padding: '8px 12px',
-                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.3)',
-                        }}
-                        itemStyle={{
-                            color: '#ffffff',
-                        }}
-                        labelStyle={{
-                            color: '#ffffff',
-                            fontWeight: '600',
-                        }}
-                        formatter={(value: number) => `$${value.toLocaleString()}`}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="penalties"
-                        stroke="#ef4444"
-                        fillOpacity={1}
-                        fill="url(#colorPenalties)"
-                        strokeWidth={2}
-                    />
-                    <Area
-                        type="monotone"
-                        dataKey="savings"
-                        stroke="#10b981"
-                        fillOpacity={1}
-                        fill="url(#colorSavings)"
-                        strokeWidth={2}
-                    />
-                </AreaChart>
-            </ResponsiveContainer>
-
-            <div className="grid grid-cols-2 gap-4 mt-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-green-500 rounded-full"/>
-                    <div>
-                        <div className="text-sm text-slate-400">Total Savings</div>
-                        <div className="text-lg font-bold text-white mono-numbers">$30,200</div>
-                    </div>
+            <h3 className="text-xl font-bold text-white mb-1">Savings over time</h3>
+            <p className="text-sm text-slate-400 mb-4">Total saved by executed decisions (this session)</p>
+            {data.length === 0 ? (
+                <div className="h-[300px] flex items-center justify-center text-center text-slate-500 text-sm px-6">
+                    No decisions yet. Execute a recommendation on the dashboard and it will appear here.
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="w-3 h-3 bg-red-500 rounded-full"/>
-                    <div>
-                        <div className="text-sm text-slate-400">Penalties Avoided</div>
-                        <div className="text-lg font-bold text-white mono-numbers">$18,100</div>
-                    </div>
-                </div>
-            </div>
+            ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={data}>
+                        <defs>
+                            <linearGradient id="saved" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)"/>
+                        <XAxis dataKey="label" stroke="#94a3b8" fontSize={12}/>
+                        <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={v => formatINRCompact(v)} width={80}/>
+                        <Tooltip
+                            contentStyle={{backgroundColor: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, color: '#fff'}}
+                            formatter={(v: number) => [formatINR(v), 'Total saved']}
+                        />
+                        <Area type="monotone" dataKey="saved" stroke="#10b981" strokeWidth={2} fill="url(#saved)"/>
+                    </AreaChart>
+                </ResponsiveContainer>
+            )}
         </div>
     );
 }

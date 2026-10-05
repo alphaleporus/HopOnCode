@@ -1,4 +1,6 @@
 [
   {"at_s": 5, "truck_id": "TRK-402", "action": "stop"},
-  {"at_s": 9, "truck_id": "TRK-402", "action": "signal", "fault_code": "P0217"}
+  {"at_s": 9, "truck_id": "TRK-402", "action": "signal", "fault_code": "P0217"},
+  {"at_s": 25, "truck_id": "TRK-518", "action": "silent"},
+  {"at_s": 90, "truck_id": "TRK-518", "action": "reconnect"}
 ]

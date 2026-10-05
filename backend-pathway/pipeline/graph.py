@@ -35,6 +35,7 @@ class TelemetrySchema(pw.Schema):
     # Machine signals (from the AIS-140 tracker / telematics platform); no driver input needed
     fault_code: str = pw.column_definition(default_value="")      # engine/vehicle DTC, e.g. "P0217"
     harsh_event: bool = pw.column_definition(default_value=False)  # crash / harsh-deceleration sensor
+    ignition: int = pw.column_definition(default_value=-1)         # 1 on, 0 off, -1 unknown (basic AIS-140)
     # Label from an integrated system (TMS event, geofence, weather feed) or a dispatcher override
     incident: str = pw.column_definition(default_value="")
     trip_started_at: int = pw.column_definition(default_value=0)
@@ -52,13 +53,14 @@ class RegistrySchema(pw.Schema):
 class CommandSchema(pw.Schema):
     truck_id: str
     incident_id: str
-    action: str  # "execute" | "dismiss"
+    action: str  # "execute" | "dismiss" | "classify" (dispatcher sets the incident type)
     ts: int
     provider: str
     cost: float
     net_savings: float
     penalty_avoided: float
     extra_co2_kg: float
+    label: str = pw.column_definition(default_value="")  # incident type for "classify"
 
 
 @dataclass
@@ -116,16 +118,22 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
         return fold(state, ts, lat, lon, speed, incident, trip_started_at, stop_kmh)
 
     @pw.udf
-    def assess_udf(truck_id: str, st: Any, route: str, contract_raw: str, nominal_kmh: float) -> pw.Json:
+    def assess_udf(truck_id: str, st: Any, route: str, contract_raw: str, nominal_kmh: float,
+                   override_incident_id: Optional[str], override_label: Optional[str]) -> pw.Json:
         from core.models import contract_from_json
         s = TruckState(*st)
+        # A dispatcher classification applies only to the stop it was made for
+        overridden = bool(override_incident_id) and s.stopped_since \
+            and override_incident_id == f"{truck_id}:{s.stopped_since}"
+        incident = override_label if overridden else s.incident
         snap = TruckSnapshot(
             truck_id=truck_id, lon=s.lon, lat=s.lat, speed_kmh=s.speed_kmh, cruise_kmh=s.cruise_kmh,
             now=s.ts, trip_started_at=s.trip_started_at, stopped_since=s.stopped_since,
-            incident=s.incident, route=_route(route), nominal_cruise_kmh=nominal_kmh,
+            incident=incident, route=_route(route), nominal_cruise_kmh=nominal_kmh,
         )
         out = assess(snap, contract_from_json(contract_raw), cfg)
-        out.update(lon=s.lon, lat=s.lat, speed_kmh=s.speed_kmh, ts=s.ts, readings=s.readings)
+        out.update(lon=s.lon, lat=s.lat, speed_kmh=s.speed_kmh, ts=s.ts, readings=s.readings,
+                   incident_source="dispatcher" if overridden else ("telematics" if s.incident else ""))
         return pw.Json(out)
 
     @pw.udf
@@ -144,7 +152,8 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
 
     # 1. Classify stops from machine signals, then fold per-truck state (O(1) memory per truck)
     telemetry = sources.telemetry.with_columns(
-        incident=pw.apply_with_type(infer_incident, str, pw.this.incident, pw.this.fault_code, pw.this.harsh_event))
+        incident=pw.apply_with_type(infer_incident, str, pw.this.incident, pw.this.fault_code, pw.this.harsh_event,
+                                    pw.this.ignition))
     state = telemetry.groupby(pw.this.truck_id).reduce(
         pw.this.truck_id,
         st=truck_state(pw.this.ts, pw.this.lat, pw.this.lon, pw.this.speed_kmh, pw.this.incident,
@@ -169,15 +178,24 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
         registry.route, registry.nominal_cruise_kmh)
     tracked = tracked.join(contracts, tracked.contract_id == contracts.contract_id).select(
         *pw.left, contract_raw=pw.right.raw, terms=pw.right.terms)
+    # Dispatcher classifications (office staff, never the driver) override inferred incident types
+    overrides = sources.commands.filter(pw.this.action == "classify").groupby(pw.this.truck_id).reduce(
+        pw.this.truck_id,
+        incident_id=pw.reducers.latest(pw.this.incident_id),
+        label=pw.reducers.latest(pw.this.label),
+    )
+    tracked = tracked.join_left(overrides, tracked.truck_id == overrides.truck_id).select(
+        *pw.left, override_incident_id=pw.right.incident_id, override_label=pw.right.label)
     assessed = tracked.select(
         pw.this.truck_id, pw.this.driver, pw.this.contract_id, pw.this.cargo_value, pw.this.route,
         pw.this.terms,
         assessment=assess_udf(pw.this.truck_id, pw.this.st, pw.this.route, pw.this.contract_raw,
-                              pw.this.nominal_cruise_kmh),
+                              pw.this.nominal_cruise_kmh, pw.this.override_incident_id, pw.this.override_label),
     )
 
     # 4. Overlay operator decisions
-    latest_cmd = sources.commands.groupby(pw.this.truck_id).reduce(
+    decisions = sources.commands.filter((pw.this.action == "execute") | (pw.this.action == "dismiss"))
+    latest_cmd = decisions.groupby(pw.this.truck_id).reduce(
         pw.this.truck_id,
         incident_id=pw.reducers.latest(pw.this.incident_id),
         action=pw.reducers.latest(pw.this.action),
@@ -199,15 +217,21 @@ def build(sources: Sources, cfg: DecisionConfig, explainer=None, contracts: Opti
     def count_if(cond):
         return pw.reducers.sum(pw.if_else(cond, 1, 0))
 
-    fleet_kpis = fleet.reduce(
+    # Money totals are summed as integer paise: in Pathway 0.33 a float sum over rows that are
+    # updated in place (retract + insert) stays at 0, while integer sums are correct.
+    fleet_kpis = fleet.with_columns(
+        at_risk_paise=pw.apply_with_type(lambda status, exposure: int(round(exposure * 100)) if status == "critical"
+                                         else 0, int, pw.this.status, pw.this.exposure),
+        cargo_paise=pw.apply_with_type(lambda v: int(round(v * 100)), int, pw.this.cargo_value),
+    ).reduce(
         trucks=pw.reducers.count(),
         on_time=count_if(pw.this.status == "on-time"),
         delayed=count_if(pw.this.status == "delayed"),
         critical=count_if(pw.this.status == "critical"),
         resolved=count_if(pw.this.status == "resolved"),
         actionable=count_if((pw.this.recommendation == EXECUTE) | (pw.this.recommendation == CONSIDER)),
-        exposure=pw.reducers.sum(pw.if_else(pw.this.status == "critical", pw.this.exposure, 0.0)),
-        cargo_value=pw.reducers.sum(pw.this.cargo_value),
+        exposure_paise=pw.reducers.sum(pw.this.at_risk_paise),
+        cargo_value_paise=pw.reducers.sum(pw.this.cargo_paise),
     )
 
     # 6. Impact of executed decisions

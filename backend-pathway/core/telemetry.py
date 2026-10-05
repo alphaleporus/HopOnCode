@@ -22,6 +22,7 @@ class TruckState(NamedTuple):
 
 
 CRUISE_EMA_ALPHA = 0.2
+WEAK_SIGNALS = {"idling"}
 
 
 def fold(
@@ -61,8 +62,12 @@ def fold(
     else:
         cruise = prev.cruise_kmh
         stopped_since = prev.stopped_since or ts
-        # A report sticks for the whole stop; a new report replaces it
-        current_incident = incident or prev.incident
+        # A classification sticks for the whole stop; a new one replaces it, except that the
+        # weak ignition-only signal ("idling") never downgrades a stronger one (e.g. a fault code)
+        if not incident or (incident in WEAK_SIGNALS and prev.incident):
+            current_incident = prev.incident
+        else:
+            current_incident = incident
 
     return tuple(TruckState(
         ts=ts, lat=lat, lon=lon, speed_kmh=speed_kmh, cruise_kmh=cruise,

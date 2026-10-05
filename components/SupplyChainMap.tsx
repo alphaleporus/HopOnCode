@@ -124,7 +124,8 @@ function CenterButton({ trucks }: { trucks: Truck[] }) {
 
 // Custom truck icon
 const createTruckIcon = (status: string) => {
-  const color = status === 'resolved' ? '#a855f7' : 
+  const color = status === 'signal-lost' ? '#64748b' :
+                status === 'resolved' ? '#a855f7' : 
                 status === 'on-time' ? '#10b981' : 
                 status === 'delayed' ? '#f59e0b' : 
                 status === 'critical' ? '#ef4444' : '#10b981';
@@ -189,7 +190,8 @@ export default function SupplyChainMap({ trucks, ecoMode }: SupplyChainMapProps)
               <Polyline
                 positions={truck.route.map(coord => [coord[1], coord[0]])}
                 pathOptions={{
-                  color: truck.status === 'resolved' ? '#a855f7' :
+                  color: truck.status === 'signal-lost' ? '#64748b' :
+                         truck.status === 'resolved' ? '#a855f7' :
                          truck.status === 'critical' ? '#ef4444' : 
                          truck.status === 'delayed' ? '#f59e0b' : '#10b981',
                   weight: 4,
@@ -221,6 +223,7 @@ export default function SupplyChainMap({ trucks, ecoMode }: SupplyChainMapProps)
                       <span className="font-medium text-slate-900">{truck.velocity} km/h</span>
                     </div>
                     <div className={`mt-2 px-2 py-1 rounded text-center font-semibold ${
+                      truck.status === 'signal-lost' ? 'bg-slate-200 text-slate-700' :
                       truck.status === 'resolved' ? 'bg-purple-100 text-purple-700' :
                       truck.status === 'on-time' ? 'bg-green-100 text-green-700' :
                       truck.status === 'delayed' ? 'bg-amber-100 text-amber-700' : 
@@ -256,6 +259,10 @@ export default function SupplyChainMap({ trucks, ecoMode }: SupplyChainMapProps)
           <div className="flex items-center gap-3">
             <div className="w-4 h-4 rounded-full bg-purple-500 shadow-lg"></div>
             <span className="text-slate-300">Resolved</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="w-4 h-4 rounded-full bg-slate-500 shadow-lg"></div>
+            <span className="text-slate-300">Signal lost</span>
           </div>
         </div>
         

@@ -164,6 +164,8 @@ def test_infer_incident_from_machine_signals():
     assert infer_incident("", "", True) == "accident"             # crash sensor wins
     assert infer_incident("weather", "", False) == "weather"      # external feed label
     assert infer_incident("", "", False) == ""                    # unexplained stop
+    assert infer_incident("", "", False, ignition=1) == "idling"  # basic AIS-140: engine on while stopped
+    assert infer_incident("", "", False, ignition=0) == ""        # engine off, no other signal
 
 
 def test_inr_formatting():
