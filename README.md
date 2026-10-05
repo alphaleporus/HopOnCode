@@ -4,7 +4,7 @@
 ![telematics](https://img.shields.io/badge/telematics-Traccar%206-2F4FE0?style=flat-square&labelColor=14171F)
 ![ui](https://img.shields.io/badge/ui-Next.js%2016-2F4FE0?style=flat-square&labelColor=14171F)
 ![roads](https://img.shields.io/badge/roads-OSRM%20%C2%B7%20OSM-2F4FE0?style=flat-square&labelColor=14171F)
-![tests](https://img.shields.io/badge/tests-40%20passing-2F4FE0?style=flat-square&labelColor=14171F)
+![tests](https://img.shields.io/badge/tests-45%20passing-2F4FE0?style=flat-square&labelColor=14171F)
 ![cost](https://img.shields.io/badge/cost-no%20paid%20APIs-2F4FE0?style=flat-square&labelColor=14171F)
 
 When a truck stops, FleetFusion prices the delay against the customer's contract and recommends the cheapest way to recover, within seconds.
@@ -36,6 +36,8 @@ Every number is deterministic. A local model (Ollama) can rewrite the explanatio
 
 <img src="docs/assets/incident.svg" width="100%" alt="One incident: TRK-402 goes on time, delayed (speed 0), critical (fault code P0217), resolved (dispatcher approves), moving (relief takes the cargo). About ₹38k at risk, 1.8 h late, about ₹22k saved, no driver calls.">
 
+> The scripted breakdown from the built-in simulator (`FEED=internal`). In the default Traccar demo the same flow runs on any of TRK-101–116 when you inject an incident.
+
 ## `05` How a fix is chosen
 
 <img src="docs/assets/fix-decision.svg" width="100%" alt="How a fix is chosen: wait ₹37,985, QuickFreight ₹15,567, RapidLogistics ₹15,760, ExpressHaul ₹21,799. The lowest passes three checks (saving ≥ ₹2,000, ≥ 5% of waiting, confidence ≥ 0.6) and is recommended.">
@@ -46,12 +48,13 @@ Every number is deterministic. A local model (Ollama) can rewrite the explanatio
 
 Same fleet, same incidents, handled two ways: **today** (noticed after about 60 min, then 45 min of phone calls) and **with FleetFusion** (signal in about 3 min, recommendation executed).
 
-| Per 100 trucks | Today | FleetFusion |
+| Per incident | Today | FleetFusion |
 |---|---|---|
-| Cost per incident | ₹7,705 | **₹3,639** |
-| Late deliveries | 24% | **12%** |
-| Relief trucks booked | 29% | **14%** |
-| Saving | | **≈ ₹9 L / month** |
+| Cost | ₹7,705 | **₹3,639** |
+| Ends in a late delivery | 24% | **12%** |
+| Relief truck booked | 29% | **14%** |
+
+**Saving: ≈ ₹9 L a month per 100 trucks.**
 
 Assumes 8 incidents per 100 trips, 300 km/day, 26 days a month. Range: ₹3.0 L to ₹16.2 L a month depending on incident rate and discovery delay. Reproduce with `scripts/impact_report.py`, or use the live calculator in Analytics.
 
@@ -65,21 +68,37 @@ Needs Node.js 18+, Python 3.10+, and Docker (optional).
 
 Open `http://localhost:3000/dashboard` and sign in with `demo@fleetfusion.com` / `demo123`.
 
-With Docker running, the demo starts Traccar and 16 simulated trackers on real South-India lanes; without Docker it falls back to the built-in simulator (`FEED=internal`). Traccar's own map is at `http://localhost:8082`.
+With Docker running, the demo starts Traccar and 16 simulated trackers on real South-India lanes; without Docker it falls back to the built-in simulator (`FEED=internal`).
+
+**Traccar's own map** is at `http://localhost:8082`. First time only: create the admin account there, then link the trackers to it so they appear in its list:
+
+```bash
+python3 infra/traccar_link_devices.py
+```
+
+```bash
+docker restart fleetfusion-traccar
+```
+
+The demo clock runs 30× faster so trips play out in minutes, which is why dates in Traccar run ahead of today.
 
 Cause an incident from the backend, the way real data would arrive:
 
 ```bash
-python backend-pathway/scripts/inject.py breakdown
+python3 backend-pathway/scripts/inject.py breakdown
 ```
 
-Other types: `accident`, `flat_tyre`, `traffic`, `checkpoint`, `tracker_offline`. Stop everything with `./cleanup-demo.sh`.
+Other types: `accident`, `flat_tyre`, `traffic`, `checkpoint`, `tracker_offline`; `list` shows every truck. Stop everything with `./cleanup-demo.sh`.
+
+**Optional AI explanations** (local, free): install [Ollama](https://ollama.com), run `ollama serve`, then `ollama pull llama3.2:3b` (the default in `backend-pathway/.env`). Smaller models (1b) get the recommendation wrong too often, so their text is rejected and the engine's own summary is shown. Explanations whose figures or choice don't match the engine are always dropped; decisions are identical with AI on or off.
 
 ## `08` Connect a real fleet
 
 - **Traccar:** point any supported tracker at your Traccar server and forward positions and events to FleetFusion on port `8091` (config in `infra/traccar/traccar.xml`).
 - **HTTP:** register a trip with `POST /trucks` and stream readings to `POST /telemetry` on port `8090`.
 - **Contracts:** JSON files in `backend-pathway/data/contracts/`. Edit one and decisions update live.
+
+**Security:** the dashboard connection only accepts browsers from `WS_ALLOWED_ORIGINS` (default `http://localhost:3000`). Login tokens for operator actions and API keys for data ingest are still to do before hosting it publicly.
 
 ## `09` Stack
 
@@ -104,7 +123,7 @@ backend-pathway/
   realtime/                  WebSocket hub
   devices/                   Simulated GPS trackers
   data/                      Contracts, fleet lanes, demo scenario
-  tests/                     40 tests
+  tests/                     45 tests
 infra/                       Traccar setup
 docs/                        Product notes and decision log
 ```
