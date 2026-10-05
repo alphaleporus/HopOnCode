@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Leaf, BarChart3 } from 'lucide-react';
+import { Home, Leaf, BarChart3, Zap, RotateCcw } from 'lucide-react';
 import { useWebSocket } from '@/lib/hooks/useWebSocket';
 import { formatINRCompact } from '@/lib/utils/format';
 import AgentOverlay from '@/components/dashboard/AgentOverlay';
@@ -34,7 +34,7 @@ const SupplyChainMap = dynamic(() => import('@/components/SupplyChainMap'), {
 
 export default function DashboardPage() {
   const [ecoRouteEnabled, setEcoRouteEnabled] = useState(false);
-  const { trucks, events, arbitrageOpportunity, executeArbitrage, dismissArbitrage, connected, error, metrics, classifyIncident, setAiEnabled } = useWebSocket();
+  const { trucks, events, arbitrageOpportunity, executeArbitrage, dismissArbitrage, connected, error, metrics, classifyIncident, setAiEnabled, demoControl } = useWebSocket();
   const onTimePct = metrics && metrics.trucks ? Math.round(((metrics.onTime + metrics.resolved) / metrics.trucks) * 100) : null;
 
   // Calculate total cargo value
@@ -106,6 +106,17 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div><h1 className="text-xl font-bold text-white">Command Center</h1><p className="text-sm text-slate-400">Pune, India</p></div>
             <div className="flex items-center gap-3">
+              {metrics?.demoControls && (
+                <div className="flex items-center gap-2 px-2 py-1.5 glass-card rounded-lg border border-amber-500/20">
+                  <span className="text-[10px] font-semibold uppercase text-amber-400/80 px-1">Demo</span>
+                  <button onClick={() => demoControl('breakdown')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-500/15 hover:bg-red-500/25 text-red-300 text-sm font-medium transition-colors">
+                    <Zap className="w-4 h-4" />Trigger breakdown
+                  </button>
+                  <button onClick={() => demoControl('reset')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-white/10 text-slate-300 text-sm font-medium transition-colors">
+                    <RotateCcw className="w-4 h-4" />Reset
+                  </button>
+                </div>
+              )}
               <div className="flex items-center gap-3 px-4 py-2 glass-card rounded-lg">
                 <Leaf className={`w-4 h-4 ${ecoRouteEnabled ? 'text-green-400' : 'text-slate-500'}`} />
                 <span className="text-sm font-medium text-white">Eco</span>

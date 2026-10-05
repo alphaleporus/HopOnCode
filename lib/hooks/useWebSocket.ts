@@ -20,6 +20,7 @@ export interface FleetMetrics {
     signalLost: number;
     aiAvailable: boolean;
     aiEnabled: boolean;
+    demoControls?: boolean;
 }
 
 interface WebSocketDataMessage {
@@ -206,6 +207,7 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
             case 'arbitrage_dismissed':
             case 'incident_classified':
             case 'ai_toggled':
+            case 'demo_ack':
                 break;  // reflected in the next state_update
 
             case 'error':
@@ -352,6 +354,11 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         sendMessage({type: 'set_ai', enabled});
     }, [sendMessage]);
 
+    // Presentation-only: trigger a breakdown on cue, or reset the scripted demo
+    const demoControl = useCallback((action: 'breakdown' | 'reset') => {
+        sendMessage({type: 'demo_control', action});
+    }, [sendMessage]);
+
     useEffect(() => {
         // Subscribing to an external system is what effects are for; connect() only
         // sets state synchronously in its error path.
@@ -380,6 +387,7 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         decisions: state.decisions,
         classifyIncident,
         setAiEnabled,
+        demoControl,
         connected: state.connected,
         error: state.error,
         executeArbitrage,

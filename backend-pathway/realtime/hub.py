@@ -11,7 +11,8 @@ Message contract (backward compatible with the existing frontend):
     server → client  initial_state | state_update   {trucks, events, arbitrage, opportunities, metrics}
                      arbitrage_executed | arbitrage_dismissed | error | pong
     client → server  execute_arbitrage {truckId} | dismiss_arbitrage {truckId}
-                     classify_incident {truckId, incident} | set_ai {enabled} | ping
+                     classify_incident {truckId, incident} | set_ai {enabled}
+                     demo_control {action: "breakdown" | "reset"} (demo only) | ping
 """
 
 import asyncio
@@ -96,6 +97,8 @@ class RealtimeHub:
         # AI is optional: explanations shown only if a model is reachable AND the operator leaves it on
         self.ai_available = False
         self.ai_enabled = True
+        # Demo-only controls (trigger breakdown / reset), wired by main.py when the simulator runs
+        self.on_demo: Optional[Callable[[str], Optional[str]]] = None
 
     # ---- Pathway callbacks (Pathway worker threads) ---------------------------------------
     def subscriber(self, view: str):
@@ -241,6 +244,7 @@ class RealtimeHub:
                     "signalLost": len(self._lost),
                     "aiAvailable": self.ai_available,
                     "aiEnabled": self.ai_enabled and self.ai_available,
+                    "demoControls": self.on_demo is not None,
                 },
                 "timestamp": _iso(time.time()),
             }
@@ -274,6 +278,23 @@ class RealtimeHub:
                                   f"- decisions unchanged (deterministic engine)", "info")
             self._dirty = True
         return {"type": "ai_toggled", "enabled": self.ai_enabled, "timestamp": _iso(time.time())}
+
+    def _handle_demo(self, msg: Dict) -> Dict:
+        action = msg.get("action")
+        if self.on_demo is None or action not in ("breakdown", "reset"):
+            return {"type": "error", "message": "Demo controls are disabled"}
+        result = self.on_demo(action)
+        with self.lock:
+            if action == "reset":
+                self._lost.clear()
+                self._last_seen.clear()
+                self._event("system", "🎬 Demo reset: all trucks back on route, scenario replaying", "info")
+            elif result:
+                self._event("system", f"🎬 Demo: breakdown triggered on {result}", "info")
+            else:
+                self._event("system", "🎬 Demo: no moving truck available - reset the demo", "warning")
+            self._dirty = True
+        return {"type": "demo_ack", "action": action, "truckId": result, "timestamp": _iso(time.time())}
 
     def _check_signal_lost(self):
         """Flag trucks whose tracker has gone quiet; emit events on transitions."""
@@ -335,9 +356,10 @@ class RealtimeHub:
                     if msg.get("type") == "ping":
                         await ws.send(json.dumps({"type": "pong", "timestamp": _iso(time.time())}))
                     elif msg.get("type") in ("execute_arbitrage", "dismiss_arbitrage", "classify_incident",
-                                             "set_ai"):
+                                             "set_ai", "demo_control"):
                         handler = {"classify_incident": self._handle_classify,
-                                   "set_ai": self._handle_set_ai}.get(msg["type"], self._handle_command)
+                                   "set_ai": self._handle_set_ai,
+                                   "demo_control": self._handle_demo}.get(msg["type"], self._handle_command)
                         reply = handler(msg)
                         if reply["type"] == "error":
                             await ws.send(json.dumps(reply))

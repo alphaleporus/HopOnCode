@@ -107,6 +107,9 @@ To stop everything:
 
 Try these:
 - **Execute the fix** in the popup, then open **Analytics** to see the savings recorded.
+- Press **Trigger breakdown** (top bar, demo only) for another incident on cue: the next one is a crash on a
+  vaccine truck, with about ₹14 lakh of cold-chain spoilage at risk.
+- Press **Reset** to put every truck back on route and replay the scenario. Savings already recorded are kept.
 - Use the **Dispatcher desk** (left sidebar) to change why a truck stopped, and watch the cost change.
 - Flip the **AI explanations** switch. Decisions stay exactly the same.
 
@@ -195,7 +198,7 @@ backend-pathway/
   llm/                      Optional AI explanations
   data/contracts/           Sample customer contracts (₹)
   data/scenarios/           The scripted demo
-  tests/                    30 automated tests
+  tests/                    31 automated tests
 docs/PRODUCT.md             Features, data sources, priorities
 ```
 

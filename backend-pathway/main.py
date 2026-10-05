@@ -128,6 +128,8 @@ def main():
     hub = RealtimeHub(host=os.getenv("WEBSOCKET_HOST", "localhost"), port=int(os.getenv("WEBSOCKET_PORT", "8765")),
                       on_command=on_command)
     hub.ai_available = explainer is not None
+    if sim and env_bool("DEMO_CONTROLS", True):
+        hub.on_demo = lambda action: sim.reset() if action == "reset" else sim.trigger_breakdown()
     for name, table in [("fleet", out.fleet), ("fleet_kpis", out.fleet_kpis), ("impact", out.impact),
                         ("explanations", out.explanations)]:
         if table is not None:

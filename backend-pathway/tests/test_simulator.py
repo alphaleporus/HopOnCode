@@ -35,3 +35,16 @@ def test_random_incidents_occur_and_clear():
     sim = FleetSimulator(fleet_size=50, speedup=3600, random_incidents_per_truck_hour=1.0)
     stopped = sum(r["speed_kmh"] == 0 for r in sim.tick(1))
     assert stopped > 10  # ~63% expected after one sim hour
+
+
+def test_demo_trigger_breakdown_and_reset():
+    import time
+    sim = FleetSimulator(fleet_size=3)
+    assert sim.trigger_breakdown() == "TRK-402"
+    assert {r["truck_id"]: r for r in sim.tick(1)}["TRK-402"]["speed_kmh"] == 0
+    assert sim.trigger_breakdown() == "TRK-305"  # next demo truck while TRK-402 is stopped
+    time.sleep(4.1)
+    readings = {r["truck_id"]: r for r in sim.tick(1)}
+    assert readings["TRK-402"]["fault_code"] == "P0217" and readings["TRK-305"]["harsh_event"]
+    sim.reset()
+    assert all(r["speed_kmh"] > 0 for r in sim.tick(1))  # everyone back on route

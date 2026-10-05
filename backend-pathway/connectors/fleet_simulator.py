@@ -85,6 +85,8 @@ class FleetSimulator:
     def __init__(self, fleet_size: int = 3, speedup: float = 1.0, scenario: Optional[List[Dict]] = None,
                  random_incidents_per_truck_hour: float = 0.0, seed: int = 42,
                  contract_sla_hours: Optional[Dict[str, float]] = None):
+        self.seed, self.fleet_size = seed, fleet_size
+        self._base_scenario = list(scenario or [])
         self.rng = random.Random(seed)
         self.speedup = speedup
         self.random_rate = random_incidents_per_truck_hour
@@ -242,6 +244,39 @@ class FleetSimulator:
             elif ev["action"] == "reconnect":
                 t.silent = False
                 print(f"🎬 Scenario: {t.truck_id} tracker back online")
+
+    # ---- demo controls (presentation only; disable with DEMO_CONTROLS=false) -----------------
+    # Trucks (and the machine signal to send) that produce a clear relief recommendation under the
+    # sample contracts: TRK-402 engine fault on a just-in-time contract; TRK-305 crash on a vaccine
+    # load, where the longer stop pushes the cargo past its cold-chain limit.
+    DEMO_BREAKDOWNS = {"TRK-402": {"fault_code": "P0217"}, "TRK-305": {"harsh_event": True}}
+
+    def trigger_breakdown(self) -> Optional[str]:
+        """Stop a moving truck now and send its machine signal 4 s later, so the alert plays out live."""
+        with self.lock:
+            moving = [tid for tid, t in self.trucks.items() if not t.stopped and not t.silent]
+            preferred = [tid for tid in self.DEMO_BREAKDOWNS if tid in moving]
+            truck_id = (preferred or moving or [None])[0]
+            if truck_id is None:
+                return None
+            now = time.time() - self.start_wall
+            signal = self.DEMO_BREAKDOWNS.get(truck_id, {"fault_code": "P0217"})
+            self.scenario += [{"at_s": now, "truck_id": truck_id, "action": "stop"},
+                              {"at_s": now + 4, "truck_id": truck_id, "action": "signal", **signal}]
+            self.scenario.sort(key=lambda e: e["at_s"])
+            return truck_id
+
+    def reset(self):
+        """Put every truck back at its starting point and replay the scripted scenario from now.
+
+        The simulated clock keeps moving forward, so the pipeline sees normal, in-order readings.
+        """
+        with self.lock:
+            self.rng = random.Random(self.seed)
+            self.trucks = {}
+            self._build_fleet(self.fleet_size)
+            self.start_wall = time.time()
+            self.scenario = sorted(self._base_scenario, key=lambda e: e["at_s"])
 
     # ---- control from the decision layer ----------------------------------------------------
     def dispatch_relief(self, truck_id: str, pickup_eta_min: float, transfer_min: float, speed_kmh: float):
