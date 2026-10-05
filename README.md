@@ -1,205 +1,112 @@
-# FleetFusion
+<img src="docs/assets/header.svg" width="100%" alt="FleetFusion: real-time delay decisions for road freight">
 
-**When a truck breaks down, FleetFusion tells you within seconds what the delay will cost and the cheapest way to fix it.**
+![engine](https://img.shields.io/badge/engine-Pathway-2F4FE0?style=flat-square&labelColor=14171F)
+![telematics](https://img.shields.io/badge/telematics-Traccar%206-2F4FE0?style=flat-square&labelColor=14171F)
+![ui](https://img.shields.io/badge/ui-Next.js%2016-2F4FE0?style=flat-square&labelColor=14171F)
+![roads](https://img.shields.io/badge/roads-OSRM%20%C2%B7%20OSM-2F4FE0?style=flat-square&labelColor=14171F)
+![tests](https://img.shields.io/badge/tests-40%20passing-2F4FE0?style=flat-square&labelColor=14171F)
+![cost](https://img.shields.io/badge/cost-no%20paid%20APIs-2F4FE0?style=flat-square&labelColor=14171F)
 
-Built for the Craftverse 2.0 hackathon. Full feature list, data sources and priorities: [`docs/PRODUCT.md`](docs/PRODUCT.md).
+When a truck stops, FleetFusion prices the delay against the customer's contract and recommends the cheapest way to recover, within seconds.
 
----
+## `01` Why
 
-## The problem
+A stalled truck costs money long before anyone notices. Usually the bill shows up as a late-delivery penalty, after it's too late to act.
 
-- India spends **₹24 lakh crore a year on logistics** (7.97% of GDP, DPIIT–NCAER study, FY24).
-- Trucks lose **5–25% of their journey time to stoppages** (TCI–IIM highway freight study).
-- When a truck stalls, nobody knows what the delay will cost until the late-delivery penalty arrives. By then it's too late to act.
+- Trucks lose **5–25% of journey time** to stoppages (TCI–IIM highway study).
+- **63%** of the 6,880 real delivery trips in our source dataset were flagged delayed.
 
-## What FleetFusion does
+## `02` What it does
 
-1. **Notices a stalled truck** from the GPS tracker it already carries. No driver app, no phone calls.
-2. **Works out why it stopped** from vehicle signals: engine fault, crash sensor, engine idling, weather or checkpoint. Office staff can correct the cause if needed.
-3. **Prices the delay** using that customer's contract: deadline, penalty per hour, penalty cap, cold-chain limits, force majeure.
-4. **Compares every way to fix it**, from waiting it out to each available relief truck, and picks the cheapest overall (not just the cheapest quote).
-5. **Lets an operator approve it in one click**, then tracks money saved, penalties avoided and extra CO₂.
+| | |
+|---|---|
+| `DETECT` | Reads the GPS trackers trucks already carry, through Traccar. No driver app. |
+| `DIAGNOSE` | Infers why it stopped from machine signals: fault codes, crash sensor, ignition, silence. |
+| `PRICE` | Applies the contract: deadline, penalty per hour, cap, cold-chain limit, force majeure. |
+| `DECIDE` | Compares waiting against every relief truck by expected cost, including the risk a relief fails. |
+| `ACT` | An operator approves in one click; the decision goes back to the carrier by webhook. |
 
-**Works without AI.** Every number comes from plain, checkable calculations. A local AI model can optionally write a
-friendlier explanation, and switching it off changes nothing else.
+Every number is deterministic. A local model (Ollama) can rewrite the explanation in plain words; switching it off changes nothing else.
 
----
+## `03` Architecture
 
-## How it works
+<img src="docs/assets/architecture.svg" width="100%" alt="Architecture: GPS trackers report to Traccar; Traccar, the order system and contract files feed the FleetFusion engine (ingest, Pathway state, cause, decision, realtime hub), which serves the dashboard and analytics and sends approved fixes to the carrier by webhook. Ollama is optional.">
 
-```mermaid
-flowchart LR
-    subgraph IN["Data in"]
-        GPS["Truck GPS trackers<br/>(location, speed, ignition,<br/>engine fault codes)"]
-        TMS["Company systems<br/>(orders, deadlines, contracts)"]
-        SIM["Demo simulator"]
-    end
+## `04` One incident, end to end
 
-    subgraph ENGINE["FleetFusion engine"]
-        DETECT["1. Detect<br/>stopped or silent trucks"]
-        CAUSE["2. Work out the cause<br/>(no driver input)"]
-        PRICE["3. Price the delay<br/>against the contract"]
-        PICK["4. Compare fixes,<br/>pick the cheapest"]
-    end
+<img src="docs/assets/incident.svg" width="100%" alt="One incident: TRK-402 goes on time, delayed (speed 0), critical (fault code P0217), resolved (dispatcher approves), moving (relief takes the cargo). About ₹38k at risk, 1.8 h late, about ₹22k saved, no driver calls.">
 
-    subgraph OUT["People"]
-        DASH["Dashboard<br/>map · alerts · one-click fix"]
-        DESK["Dispatcher desk<br/>correct a stop's cause"]
-        STATS["Analytics<br/>savings · money at risk"]
-    end
+## `05` How a fix is chosen
 
-    AI["Optional local AI<br/>(writes explanations only)"]
+<img src="docs/assets/fix-decision.svg" width="100%" alt="How a fix is chosen: wait ₹37,985, QuickFreight ₹15,567, RapidLogistics ₹15,760, ExpressHaul ₹21,799. The lowest passes three checks (saving ≥ ₹2,000, ≥ 5% of waiting, confidence ≥ 0.6) and is recommended.">
 
-    GPS --> DETECT
-    SIM --> DETECT
-    TMS --> PRICE
-    DETECT --> CAUSE --> PRICE --> PICK
-    PICK --> DASH
-    PICK --> STATS
-    PICK -.-> AI -.-> DASH
-    DESK -- "corrections" --> CAUSE
-    DASH -- "approve fix" --> PICK
-```
+> Computed by `core/arbitrage.py` for the demo breakdown. Values shift slightly with the exact second the truck stops.
 
-### What happens to one breakdown
+## `06` Impact (simulated)
 
-```mermaid
-sequenceDiagram
-    participant T as Truck tracker
-    participant E as FleetFusion
-    participant O as Operator
-    T->>E: Speed drops to 0
-    E-->>O: 🟡 TRK-402 delayed (stopped, cause unknown)
-    T->>E: Engine fault code P0217
-    E->>E: Cause = breakdown, about 3 h<br/>Projected 1.8 h late = ₹38,282 at risk
-    E->>E: Compare: wait vs 3 relief trucks
-    E-->>O: 💎 Best fix: RapidLogistics, saves ₹22,516
-    O->>E: Approve (one click)
-    E-->>O: ✅ Resolved, savings recorded
-```
+Same fleet, same incidents, handled two ways: **today** (noticed after about 60 min, then 45 min of phone calls) and **with FleetFusion** (signal in about 3 min, recommendation executed).
 
----
+| Per 100 trucks | Today | FleetFusion |
+|---|---|---|
+| Cost per incident | ₹7,705 | **₹3,639** |
+| Late deliveries | 24% | **12%** |
+| Relief trucks booked | 29% | **14%** |
+| Saving | | **≈ ₹9 L / month** |
 
-## Run it
+Assumes 8 incidents per 100 trips, 300 km/day, 26 days a month. Range: ₹3.0 L to ₹16.2 L a month depending on incident rate and discovery delay. Reproduce with `scripts/impact_report.py`, or use the live calculator in Analytics.
 
-You need **Node.js 18+** and **Python 3.10+**.
+## `07` Run it
+
+Needs Node.js 18+, Python 3.10+, and Docker (optional).
 
 ```bash
 ./start-demo.sh
 ```
 
-Then open **http://localhost:3000/dashboard** and log in with `demo@fleetfusion.com` / `demo123`.
+Open `http://localhost:3000/dashboard` and sign in with `demo@fleetfusion.com` / `demo123`.
 
-To stop everything:
+With Docker running, the demo starts Traccar and 16 simulated trackers on real South-India lanes; without Docker it falls back to the built-in simulator (`FEED=internal`). Traccar's own map is at `http://localhost:8082`.
+
+Cause an incident from the backend, the way real data would arrive:
 
 ```bash
-./cleanup-demo.sh
+python backend-pathway/scripts/inject.py breakdown
 ```
 
-### What you'll see in the demo
+Other types: `accident`, `flat_tyre`, `traffic`, `checkpoint`, `tracker_offline`. Stop everything with `./cleanup-demo.sh`.
 
-| Time | What happens |
+## `08` Connect a real fleet
+
+- **Traccar:** point any supported tracker at your Traccar server and forward positions and events to FleetFusion on port `8091` (config in `infra/traccar/traccar.xml`).
+- **HTTP:** register a trip with `POST /trucks` and stream readings to `POST /telemetry` on port `8090`.
+- **Contracts:** JSON files in `backend-pathway/data/contracts/`. Edit one and decisions update live.
+
+## `09` Stack
+
+| Layer | Tools |
 |---|---|
-| 5 s | TRK-402 stops. It shows as **delayed** (cause unknown). |
-| 9 s | Its tracker sends an engine fault code. It turns **critical** and a popup compares every fix. |
-| 25 s | TRK-518's tracker goes silent. It turns grey: **signal lost**. |
-| 90 s | TRK-518's tracker comes back. |
+| Streaming engine | Python, Pathway |
+| Telematics | Traccar 6 (Docker) |
+| Dashboard | Next.js 16, React 19, Tailwind, Leaflet + OpenStreetMap |
+| Roads | OSRM over OpenStreetMap |
+| Optional AI | Ollama, local |
 
-Try these:
-- **Execute the fix** in the popup, then open **Analytics** to see the savings recorded.
-- Press **Trigger breakdown** (top bar, demo only) for another incident on cue: the next one is a crash on a
-  vaccine truck, with about ₹14 lakh of cold-chain spoilage at risk.
-- Press **Reset** to put every truck back on route and replay the scenario. Savings already recorded are kept.
-- Use the **Dispatcher desk** (left sidebar) to change why a truck stopped, and watch the cost change.
-- Flip the **AI explanations** switch. Decisions stay exactly the same.
+One process handles **3,000 truck readings per second** on a laptop (about 450 MB). Benchmark: `backend-pathway/scripts/benchmark.py`.
 
-### Optional: local AI explanations
-
-The app works fully without AI. To get friendlier, AI-written explanations, install [Ollama](https://ollama.com)
-(free, runs on your laptop, no account needed):
-
-```bash
-brew install ollama
-```
-
-```bash
-ollama pull llama3.2:3b
-```
-
-```bash
-ollama serve
-```
-
-Restart FleetFusion and the **AI explanations** switch in the dashboard becomes active.
-
-### Manual setup (instead of `start-demo.sh`)
-
-```bash
-cd backend-pathway
-python3 -m venv venv-pathway && source venv-pathway/bin/activate
-pip install -r requirements-pathway.txt
-cp .env.example .env
-python main.py
-```
-
-In a second terminal:
-
-```bash
-npm install && npm run dev
-```
-
----
-
-## Connecting real trucks
-
-Any GPS tracker or tracking platform can send data to FleetFusion over HTTP.
-
-Register a truck:
-
-```bash
-curl -X POST localhost:8090/trucks -H 'Content-Type: application/json' -d '{"truck_id":"DEV-1","driver":"A","contract_id":"CNT-2024-003","cargo_value":5000000,"route":"[[88.36,22.57],[85.82,20.29]]"}'
-```
-
-Send a reading (here: stopped, engine off, engine fault):
-
-```bash
-curl -X POST localhost:8090/telemetry -H 'Content-Type: application/json' -d '{"truck_id":"DEV-1","ts":1760000000,"lat":22.4,"lon":88.1,"speed_kmh":0,"fault_code":"P0217","ignition":0,"trip_started_at":1759990000}'
-```
-
-Contracts are simple JSON files in [`backend-pathway/data/contracts/`](backend-pathway/data/contracts/). Edit one and decisions update immediately.
-
----
-
-## Built with (all free)
-
-| Part | Technology |
-|---|---|
-| Real-time engine | Python + [Pathway](https://pathway.com) (free to use) |
-| Dashboard | Next.js, React, Tailwind CSS |
-| Maps | Leaflet + OpenStreetMap |
-| Optional AI | Ollama (runs locally) |
-
-No paid services or API keys.
-
-## Proven at scale
-
-On a single laptop, FleetFusion keeps up with **3,000 trucks sending a reading every second** (about 450 MB of memory).
-Run the test yourself: `backend-pathway/scripts/benchmark.py`.
-
-## Project layout
+## `10` Layout
 
 ```
-app/, components/, lib/     Dashboard (Next.js)
+app/ components/ lib/        Dashboard and analytics (Next.js)
 backend-pathway/
-  core/                     The decision logic: delays, penalties, picking the cheapest fix
-  pipeline/                 Real-time processing of incoming truck data
-  connectors/               Demo simulator and operator actions
-  realtime/                 Live connection to the dashboard
-  llm/                      Optional AI explanations
-  data/contracts/           Sample customer contracts (₹)
-  data/scenarios/           The scripted demo
-  tests/                    31 automated tests
-docs/PRODUCT.md             Features, data sources, priorities
+  core/                      Decision logic, penalties, impact model
+  pipeline/                  Pathway streaming graph
+  connectors/                Traccar, simulator, operator commands
+  realtime/                  WebSocket hub
+  devices/                   Simulated GPS trackers
+  data/                      Contracts, fleet lanes, demo scenario
+  tests/                     40 tests
+infra/                       Traccar setup
+docs/                        Product notes and decision log
 ```
 
 ## Checks
@@ -211,3 +118,7 @@ cd backend-pathway && PYTHONPATH=. venv-pathway/bin/python -m pytest tests/
 ```bash
 npm run lint && npm run type-check && npm run build
 ```
+
+---
+
+Fleet data: derived from "Delivery truck trips data" (Kaggle, CC BY-SA 3.0). Contract penalty rates are illustrative.

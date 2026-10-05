@@ -1,0 +1,105 @@
+<svg viewBox="0 0 1280 560" width="1280" height="560" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>One incident, end to end</title>
+  <desc>Demo truck TRK-402 goes from on time to delayed (speed 0), critical (fault code P0217), resolved (dispatcher approves) and moving (relief takes the cargo). At the critical moment about 38 thousand rupees are at risk, the truck would be 1.8 hours late, the best fix saves about 22 thousand rupees, and no driver call is needed.</desc>
+  <style>
+    text { font-family: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace; }
+    .num { font-family: Archivo, Inter, "Segoe UI", Arial, sans-serif; }
+  </style>
+  <defs>
+    <pattern id="in-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#2F4FE0" stroke-opacity=".07"/>
+    </pattern>
+    <marker id="in-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L8 4L0 8z" fill="#14171F"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="560" fill="#FBFAF7"/>
+  <rect width="1280" height="560" fill="url(#in-grid)"/>
+  <rect x=".5" y=".5" width="1279" height="559" fill="none" stroke="#D9DBE3"/>
+  <g fill="none" stroke="#14171F" stroke-opacity=".45" stroke-width="1.5">
+    <path d="M16 36V16H36"/><path d="M1244 16H1264V36"/><path d="M16 524V544H36"/><path d="M1264 524V544H1244"/>
+  </g>
+
+  <text x="48" y="52" font-size="14" font-weight="700" fill="#14171F" letter-spacing="3">ONE INCIDENT, END TO END</text>
+  <text x="1232" y="52" text-anchor="end" font-size="12" fill="#2F4FE0" letter-spacing="2">FF / 04</text>
+  <line x1="48" y1="68" x2="1232" y2="68" stroke="#14171F" stroke-opacity=".15"/>
+  <text x="48" y="94" font-size="12" fill="#59636E" letter-spacing="1.5">TRK-402 · PUNE → MUMBAI · BUILT-IN DEMO</text>
+
+  <!-- time ruler -->
+  <line x1="48" y1="128" x2="1228" y2="128" stroke="#14171F" stroke-opacity=".2"/>
+  <g stroke="#14171F" stroke-opacity=".4">
+    <line x1="146" y1="122" x2="146" y2="134"/><line x1="392" y1="122" x2="392" y2="134"/><line x1="638" y1="122" x2="638" y2="134"/>
+    <line x1="884" y1="122" x2="884" y2="134"/><line x1="1130" y1="122" x2="1130" y2="134"/>
+  </g>
+  <g font-size="11" font-weight="700" fill="#2F4FE0" text-anchor="middle" letter-spacing="1">
+    <text x="146" y="116">T+0</text><text x="392" y="116">T+5 s</text><text x="638" y="116">T+9 s</text>
+    <text x="884" y="116">+ ONE CLICK</text><text x="1130" y="116">+ HANDOVER</text>
+  </g>
+
+  <!-- status blocks -->
+  <rect x="48" y="150" width="196" height="112" fill="#1F9461"/>
+  <rect x="294" y="150" width="196" height="112" fill="#FFFFFF" stroke="#E8962B" stroke-width="2"/>
+  <rect x="540" y="150" width="196" height="112" fill="#E8962B"/>
+  <rect x="786" y="150" width="196" height="112" fill="#2F4FE0"/>
+  <rect x="1032" y="150" width="196" height="112" fill="#1F9461"/>
+  <g font-size="11" letter-spacing="1.5">
+    <text x="64" y="176" fill="#FFFFFF" fill-opacity=".7">01</text><text x="310" y="176" fill="#B86E12">02</text>
+    <text x="556" y="176" fill="#14171F" fill-opacity=".6">03</text><text x="802" y="176" fill="#DCE3FC">04</text>
+    <text x="1048" y="176" fill="#FFFFFF" fill-opacity=".7">05</text>
+  </g>
+  <g font-size="20" font-weight="700" letter-spacing="1.5">
+    <text x="64" y="214" fill="#FFFFFF">ON TIME</text><text x="310" y="214" fill="#14171F">DELAYED</text>
+    <text x="556" y="214" fill="#14171F">CRITICAL</text><text x="802" y="214" fill="#FFFFFF">RESOLVED</text>
+    <text x="1048" y="214" fill="#FFFFFF">MOVING</text>
+  </g>
+  <g font-size="12">
+    <text x="64" y="240" fill="#FFFFFF" fill-opacity=".85">moving, 68 km/h</text>
+    <text x="310" y="240" fill="#59636E">stopped, cause unknown</text>
+    <text x="556" y="240" fill="#14171F" fill-opacity=".8">breakdown, about 3 h</text>
+    <text x="802" y="240" fill="#DCE3FC">relief approved</text>
+    <text x="1048" y="240" fill="#FFFFFF" fill-opacity=".85">cargo on its way</text>
+  </g>
+  <g fill="none" stroke="#14171F" stroke-width="1.6" marker-end="url(#in-arrow)">
+    <path d="M244 206H290"/><path d="M490 206H536"/><path d="M736 206H782"/><path d="M982 206H1028"/>
+  </g>
+
+  <!-- triggers -->
+  <g stroke="#14171F" stroke-opacity=".35" stroke-dasharray="3 4">
+    <line x1="267" y1="214" x2="267" y2="292"/><line x1="513" y1="214" x2="513" y2="292"/>
+    <line x1="759" y1="214" x2="759" y2="292"/><line x1="1005" y1="214" x2="1005" y2="292"/>
+  </g>
+  <g fill="#FFFFFF" stroke="#14171F" stroke-width="1.2">
+    <rect x="155" y="292" width="224" height="72"/><rect x="401" y="292" width="224" height="72"/>
+    <rect x="647" y="292" width="224" height="72"/><rect x="893" y="292" width="224" height="72"/>
+  </g>
+  <g font-size="10" letter-spacing="2">
+    <text x="171" y="312" fill="#B86E12">SIGNAL</text><text x="417" y="312" fill="#B86E12">SIGNAL</text>
+    <text x="663" y="312" fill="#2F4FE0">ACTION</text><text x="909" y="312" fill="#2F4FE0">ACTION</text>
+  </g>
+  <g font-size="14" font-weight="700" fill="#14171F" letter-spacing="1">
+    <text x="171" y="334">SPEED 0</text><text x="417" y="334">FAULT P0217</text>
+    <text x="663" y="334">APPROVE</text><text x="909" y="334">HANDOVER</text>
+  </g>
+  <g font-size="11" fill="#59636E">
+    <text x="171" y="353">tracker → Traccar</text><text x="417" y="353">engine code → breakdown</text>
+    <text x="663" y="353">dispatcher, one click</text><text x="909" y="353">webhook → carrier</text>
+  </g>
+
+  <!-- critical moment -->
+  <rect x="48" y="396" width="1180" height="120" fill="#14171F"/>
+  <text x="72" y="424" font-size="11" fill="#E8962B" letter-spacing="2">AT THE CRITICAL MOMENT · T+9 s</text>
+  <g stroke="#F6F5F1" stroke-opacity=".15">
+    <line x1="352" y1="444" x2="352" y2="504"/><line x1="647" y1="444" x2="647" y2="504"/><line x1="942" y1="444" x2="942" y2="504"/>
+  </g>
+  <g class="num" font-size="32" font-weight="700">
+    <text class="num" x="72" y="478" fill="#E8962B">≈ ₹38k</text>
+    <text class="num" x="372" y="478" fill="#F6F5F1">1.8 h</text>
+    <text class="num" x="667" y="478" fill="#3DBE84">≈ ₹22k</text>
+    <text class="num" x="962" y="478" fill="#F6F5F1">0</text>
+  </g>
+  <g font-size="11" fill="#F6F5F1" fill-opacity=".6" letter-spacing="1.5">
+    <text x="72" y="502">AT RISK IF WE WAIT</text><text x="372" y="502">LATE IF WE WAIT</text>
+    <text x="667" y="502">SAVED BY THE BEST FIX</text><text x="962" y="502">DRIVER CALLS NEEDED</text>
+  </g>
+</svg>

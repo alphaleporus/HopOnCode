@@ -1,0 +1,111 @@
+<svg viewBox="0 0 1280 720" width="1280" height="720" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>FleetFusion system architecture</title>
+  <desc>GPS trackers report to Traccar; Traccar, the order system and contract files feed the FleetFusion engine (ingest, Pathway state, cause, decision, realtime hub), which serves the dashboard and analytics and sends approved fixes to the carrier by webhook. Ollama is optional and only writes explanations.</desc>
+  <style>
+    text { font-family: "IBM Plex Mono", Consolas, "DejaVu Sans Mono", monospace; }
+  </style>
+  <defs>
+    <pattern id="ar-grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#2F4FE0" stroke-opacity=".07"/>
+    </pattern>
+    <marker id="ar-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L8 4L0 8z" fill="#2F4FE0"/>
+    </marker>
+    <marker id="ar-arrow-grey" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L8 4L0 8z" fill="#8A90A2"/>
+    </marker>
+  </defs>
+
+  <rect width="1280" height="720" fill="#FBFAF7"/>
+  <rect width="1280" height="720" fill="url(#ar-grid)"/>
+  <rect x=".5" y=".5" width="1279" height="719" fill="none" stroke="#D9DBE3"/>
+  <g fill="none" stroke="#14171F" stroke-opacity=".45" stroke-width="1.5">
+    <path d="M16 36V16H36"/><path d="M1244 16H1264V36"/><path d="M16 684V704H36"/><path d="M1264 684V704H1244"/>
+  </g>
+
+  <text x="48" y="52" font-size="14" font-weight="700" fill="#14171F" letter-spacing="3">SYSTEM ARCHITECTURE</text>
+  <text x="1232" y="52" text-anchor="end" font-size="12" fill="#2F4FE0" letter-spacing="2">FF / 03</text>
+  <line x1="48" y1="68" x2="1232" y2="68" stroke="#14171F" stroke-opacity=".15"/>
+
+  <!-- zones -->
+  <g font-size="11" fill="#59636E" letter-spacing="2">
+    <text x="48" y="104">FIELD</text><text x="48" y="304">CUSTOMER SYSTEMS</text>
+    <text x="330" y="104">TELEMATICS</text><text x="980" y="104">OPERATIONS</text>
+  </g>
+  <text x="570" y="104" font-size="11" font-weight="700" fill="#2F4FE0" letter-spacing="2">FLEETFUSION ENGINE</text>
+  <text x="930" y="104" text-anchor="end" font-size="10" fill="#59636E" letter-spacing="1">PATHWAY · ONE PROCESS</text>
+  <g fill="none" stroke="#B9BCC6" stroke-dasharray="3 4">
+    <rect x="48" y="112" width="240" height="148"/><rect x="48" y="312" width="240" height="236"/><rect x="980" y="112" width="252" height="284"/>
+  </g>
+  <rect x="570" y="112" width="360" height="504" fill="#F3F5FC" stroke="#2F4FE0" stroke-width="1.2" stroke-dasharray="6 4"/>
+
+  <!-- nodes -->
+  <g fill="#F6F5F1" stroke="#14171F" stroke-width="1.2">
+    <rect x="64" y="148" width="208" height="76"/><rect x="64" y="336" width="208" height="76"/>
+    <rect x="64" y="452" width="208" height="76"/><rect x="330" y="148" width="200" height="76"/>
+  </g>
+  <g fill="#14171F" stroke="#2F4FE0" stroke-width="1.5">
+    <rect x="600" y="136" width="300" height="64"/><rect x="600" y="232" width="300" height="64"/>
+    <rect x="600" y="328" width="300" height="64"/><rect x="600" y="424" width="300" height="64" stroke-width="2.5"/>
+    <rect x="600" y="520" width="300" height="64"/>
+  </g>
+  <g fill="#2F4FE0"><rect x="996" y="148" width="220" height="76"/><rect x="996" y="272" width="220" height="76"/></g>
+  <g fill="#FFFFFF" stroke="#8A90A2" stroke-dasharray="4 4">
+    <rect x="996" y="534" width="220" height="72"/><rect x="330" y="548" width="200" height="72"/>
+  </g>
+  <rect x="846" y="432" width="46" height="18" fill="#2F4FE0"/>
+  <text x="869" y="445" text-anchor="middle" font-size="10" fill="#FFFFFF" letter-spacing="1">CORE</text>
+
+  <!-- titles -->
+  <g font-size="14" font-weight="700" letter-spacing="1.5">
+    <g fill="#14171F">
+      <text x="80" y="180">GPS TRACKERS</text><text x="80" y="368">ORDER SYSTEM</text>
+      <text x="80" y="484">CONTRACTS</text><text x="346" y="180">TRACCAR</text>
+    </g>
+    <g fill="#F6F5F1">
+      <text x="616" y="163">INGEST</text><text x="616" y="259">PATHWAY STATE</text><text x="616" y="355">CAUSE</text>
+      <text x="616" y="451">DECISION</text><text x="616" y="547">REALTIME HUB</text>
+    </g>
+    <g fill="#FFFFFF"><text x="1012" y="180">DASHBOARD</text><text x="1012" y="304">ANALYTICS</text></g>
+    <g fill="#59636E"><text x="1012" y="563">CARRIER</text><text x="346" y="577">OLLAMA</text></g>
+  </g>
+
+  <!-- subtitles -->
+  <g font-size="12">
+    <g fill="#59636E">
+      <text x="80" y="204">AIS-140 · OBD · alarms</text><text x="80" y="392">trips · deadlines</text>
+      <text x="80" y="508">JSON · hot reload</text><text x="346" y="204">telematics platform</text>
+      <text x="1012" y="587">relief via webhook</text><text x="346" y="601">optional · explains only</text>
+    </g>
+    <g fill="#AEB6CF">
+      <text x="616" y="185">:8091 Traccar · :8090 HTTP</text><text x="616" y="281">one fold per truck</text>
+      <text x="616" y="377">fault · crash · ignition · silence</text><text x="616" y="473">wait vs relief · expected cost</text>
+      <text x="616" y="569">WebSocket :8765</text>
+    </g>
+    <g fill="#DCE3FC"><text x="1012" y="204">map · alerts · approve</text><text x="1012" y="328">impact · decision log</text></g>
+  </g>
+
+  <!-- flows -->
+  <g fill="none" stroke="#2F4FE0" stroke-width="1.6" marker-end="url(#ar-arrow)">
+    <path d="M272 186H326"/><path d="M530 186H560V168H596"/>
+    <path d="M272 374H548V192H596"/><path d="M272 490H560V456H596"/>
+    <path d="M750 200V228"/><path d="M750 296V324"/><path d="M750 392V420"/><path d="M750 488V516"/>
+    <path d="M900 540H950V186H992"/><path d="M950 310H992"/><path d="M900 570H992"/>
+  </g>
+  <rect x="947" y="307" width="6" height="6" fill="#2F4FE0"/>
+  <path d="M600 472H580V584H534" fill="none" stroke="#8A90A2" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#ar-arrow-grey)" marker-start="url(#ar-arrow-grey)"/>
+  <g font-size="10" fill="#59636E" letter-spacing="1">
+    <text x="290" y="366">POST /trucks</text><text x="290" y="482">contract terms</text>
+    <text x="906" y="562">approved fix</text><text x="538" y="578">explain</text>
+    <text x="968" y="470" transform="rotate(-90 968 470)">LIVE STATE ⇄ APPROVE</text>
+  </g>
+
+  <!-- legend -->
+  <g font-size="10" fill="#59636E" letter-spacing="1.5">
+    <line x1="48" y1="692" x2="78" y2="692" stroke="#2F4FE0" stroke-width="2"/><text x="86" y="696">DATA FLOW</text>
+    <line x1="200" y1="692" x2="230" y2="692" stroke="#8A90A2" stroke-width="2" stroke-dasharray="4 4"/><text x="238" y="696">OPTIONAL</text>
+    <rect x="340" y="686" width="12" height="12" fill="#F6F5F1" stroke="#14171F"/><text x="360" y="696">INPUT</text>
+    <rect x="440" y="686" width="12" height="12" fill="#14171F"/><text x="460" y="696">ENGINE</text>
+    <rect x="550" y="686" width="12" height="12" fill="#2F4FE0"/><text x="570" y="696">PEOPLE</text>
+  </g>
+</svg>
