@@ -251,8 +251,8 @@ echo $BACKEND_PID >> "../$PIDFILE"
 if [ "$FEED" = "traccar" ]; then
     sleep 5
     # Simulated GPS trackers on real lanes, reporting to Traccar like hardware would.
-    # Fresh demo clock each start (backend restarts too, so both agree on time).
-    rm -f output/.device_clock
+    # The 30x demo clock continues from the last run (output/.device_clock). Never reset it: Traccar keeps the
+    # newest position per tracker, so a clock that jumps back freezes its map and scrambles replays.
     python -u devices/fleet_devices.py > ../logs/devices.log 2>&1 &
     DEVICES_PID=$!
     echo $DEVICES_PID >> "../$PIDFILE"

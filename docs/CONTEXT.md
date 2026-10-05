@@ -151,7 +151,10 @@ Next: UI overhaul with the brand pack; verify Ollama explanations; README/PRODUC
 - Fleet-wide "signal lost" = Traccar forward failures: Python HTTP server accept queue was 5 → set
   `request_queue_size=1024`, daemon threads (connectors/traccar.py, devices/fleet_devices.py).
 - Traccar dropped positions with "Future filters" once the persisted 30× device clock drifted ~28 h ahead →
-  `filter.future` widened in infra/traccar/traccar.xml (demo only) + start-demo resets output/.device_clock.
+  `filter.future` widened in infra/traccar/traccar.xml (demo only). The clock is NOT reset on start any more:
+  Traccar only moves a tracker's "latest position" forward, so a reset froze the Traccar map at the previous
+  run's last fix and replays zig-zagged between overlapping runs. Dates in Traccar therefore run ahead.
+- Traccar UI shows no devices until `python3 infra/traccar_link_devices.py` links them to the admin (once).
 - Launcher: an old start-demo watchdog killed new services → PID file `.demo-launcher.pid`; cleanup and new
   launches stop only that PID (never `pkill -f start-demo.sh`, which matched unrelated shells).
 - Status flicker: critical needs ≥ ₹1,000 at risk (FF_MIN_CRITICAL_EXPOSURE); hub debounces status events 5 s.

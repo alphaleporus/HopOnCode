@@ -101,6 +101,9 @@ class RealtimeHub:
         self.signal_lost_s = float(os.getenv("SIGNAL_LOST_SECONDS", "90"))
         self._last_seen: Dict[str, tuple] = {}  # truck_id -> (readings, wall time the count last changed)
         self._lost: set = set()
+        # Incidents already approved/dismissed: the pipeline marks them resolved a moment later, so a double
+        # click or a second dashboard tab in between must not book (and count) the relief twice
+        self._acted: set = set()
         # AI is optional: explanations shown only if a model is reachable AND the operator leaves it on
         self.ai_available = False
         self.ai_enabled = True
@@ -376,6 +379,9 @@ class RealtimeHub:
             d = row["decision"]
             if d["recommendation"] not in (EXECUTE, CONSIDER) or d["resolved"]:
                 return {"type": "error", "message": f"No open opportunity for {truck_id}"}
+            if (truck_id, d["incident_id"]) in self._acted:
+                return {"type": "error", "message": f"{truck_id} was already handled"}
+            self._acted.add((truck_id, d["incident_id"]))
             best = next(o for o in d["options"] if o["label"] == d["best"])
             wait = d["options"][0]
             cmd = {
