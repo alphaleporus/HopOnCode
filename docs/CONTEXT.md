@@ -146,3 +146,34 @@ Result: ₹7,705 → ₹3,639 per incident (−53%); late deliveries 24% → 12%
 UI: Analytics → "Impact: with vs without FleetFusion" with sliders (fleet size, incidents, discovery delay);
 hub message `impact_request` → `impact_result`. 40 tests.
 Next: UI overhaul with the brand pack; verify Ollama explanations; README/PRODUCT for Traccar + impact.
+
+## 11. Fixes after user testing (Traccar mode)
+- Fleet-wide "signal lost" = Traccar forward failures: Python HTTP server accept queue was 5 → set
+  `request_queue_size=1024`, daemon threads (connectors/traccar.py, devices/fleet_devices.py).
+- Traccar dropped positions with "Future filters" once the persisted 30× device clock drifted ~28 h ahead →
+  `filter.future` widened in infra/traccar/traccar.xml (demo only) + start-demo resets output/.device_clock.
+- Launcher: an old start-demo watchdog killed new services → PID file `.demo-launcher.pid`; cleanup and new
+  launches stop only that PID (never `pkill -f start-demo.sh`, which matched unrelated shells).
+- Status flicker: critical needs ≥ ₹1,000 at risk (FF_MIN_CRITICAL_EXPOSURE); hub debounces status events 5 s.
+- LLM: is_available now checks the model is installed (Ollama returns data:null when none); pulled llama3.2:3b.
+- UI: truck detail panel (click desk ID or map marker): summary, facts, contract, options, Approve;
+  map re-measures on resize (ResizeObserver + invalidateSize); INR in marker popup; header shows network.
+- Inject → popup measured at ~11 s (stop at 5 s, fault + EXECUTE at 11 s).
+
+## 12. UI overhaul (in progress)
+Done: brand system in app/globals.css (Paper/Ink/Cobalt/Mist/Signal/Clear + Alert #C2410C for critical,
+self-hosted Archivo + IBM Plex Mono via @fontsource, legacy classes glass-card/btn-* remapped to light surfaces,
+map tiles grayscale with no filters on marker/overlay panes). lib/status.ts = single status palette.
+components/layout/AppShell.tsx (white sidebar, logo-primary.svg, Live + AI switch). Dashboard rebuilt:
+KPI row, IncidentInbox (decisions first, ₹ at risk), map (flat status dots, selected ring), Activity log
+(emoji stripped), TruckDetail drawer (facts, contract, dispatcher classify, options, Approve), FinancialModal
+(calm decision dialog, no confetti). DispatcherDesk removed (folded into inbox + drawer). Brand favicon.
+Remaining: analytics page + components, landing page, login, track page, UserMenu settings modal check.
+UI overhaul finished: analytics on AppShell + brand charts/tiles; landing page rewritten (calm product page:
+promise, sourced stats, how it works, impact teaser, integrations; image public/fleetfusion-decision.jpg);
+login/track/user menu mapped to light theme; Next dev badge hidden (devIndicators:false).
+Readability: inbox IDs don't wrap; moving-late trucks show "running X h behind"; hub events in sentence case,
+no emoji; status hysteresis (escalate after 5 s, de-escalate after 30 s: STATUS_DOWNGRADE_SECONDS).
+Machine note: the dev Mac (8 GB) swaps heavily with Ollama (2.4 GB) + Docker + dev servers → timeouts looked like
+"signal lost". Mitigations: tracker reports sent in parallel (no skip on failure), SIGNAL_LOST_SECONDS 90,
+tracker_offline incidents 60–120 sim-min. Recommend llama3.2:1b or closing apps on 8 GB machines.

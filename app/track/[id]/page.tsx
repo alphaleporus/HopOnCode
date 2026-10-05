@@ -15,7 +15,7 @@ const SupplyChainMap = dynamic(
             <div className="w-full h-full flex items-center justify-center bg-slate-50">
                 <div className="text-center">
                     <div className="w-12 h-12 border-4 border-teal-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"/>
-                    <p className="text-slate-600">Loading map...</p>
+                    <p className="text-muted">Loading map...</p>
                 </div>
             </div>
         )
@@ -114,7 +114,7 @@ export default function TrackOrderPage() {
                         transition={{duration: 1, repeat: Infinity, ease: 'linear'}}
                         className="w-16 h-16 border-4 border-teal-500 border-t-transparent rounded-full mx-auto mb-4"
                     />
-                    <p className="text-slate-600">Loading tracking information...</p>
+                    <p className="text-muted">Loading tracking information...</p>
                 </div>
             </div>
         );
@@ -126,7 +126,7 @@ export default function TrackOrderPage() {
                 <div className="text-center">
                     <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4"/>
                     <h2 className="text-2xl font-bold text-slate-800 mb-2">Order Not Found</h2>
-                    <p className="text-slate-600">We couldn&apos;t find tracking information for order {orderId}</p>
+                    <p className="text-muted">We couldn&apos;t find tracking information for order {orderId}</p>
                 </div>
             </div>
         );
@@ -141,7 +141,7 @@ export default function TrackOrderPage() {
             case 'delayed':
                 return 'text-amber-600';
             default:
-                return 'text-slate-600';
+                return 'text-muted';
         }
     };
 
@@ -165,12 +165,12 @@ export default function TrackOrderPage() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-teal-500 rounded-lg">
-                                <Package className="w-6 h-6 text-white"/>
+                            <div className="p-2 bg-cobalt rounded-lg">
+                                <Package className="w-6 h-6 text-ink"/>
                             </div>
                             <div>
                                 <h1 className="text-xl font-bold text-slate-800">Track Your Order</h1>
-                                <p className="text-sm text-slate-500">Order #{tracking.orderId}</p>
+                                <p className="text-sm text-muted">Order #{tracking.orderId}</p>
                             </div>
                         </div>
                         <div className={`px-4 py-2 rounded-full ${getStatusBg(tracking.status)}`}>
@@ -190,41 +190,41 @@ export default function TrackOrderPage() {
                         <motion.div
                             initial={{opacity: 0, y: 20}}
                             animate={{opacity: 1, y: 0}}
-                            className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6"
+                            className="bg-white rounded-lg shadow-sm border border-slate-200 p-6"
                         >
                             <h2 className="text-lg font-bold text-slate-800 mb-4">Delivery Information</h2>
 
                             <div className="space-y-4">
                                 <div className="flex items-start gap-3">
-                                    <MapPin className="w-5 h-5 text-teal-500 mt-0.5"/>
+                                    <MapPin className="w-5 h-5 text-cobalt mt-0.5"/>
                                     <div>
-                                        <p className="text-sm text-slate-500">Current Location</p>
+                                        <p className="text-sm text-muted">Current Location</p>
                                         <p className="font-semibold text-slate-800">{tracking.currentLocation}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-3">
-                                    <Package className="w-5 h-5 text-teal-500 mt-0.5"/>
+                                    <Package className="w-5 h-5 text-cobalt mt-0.5"/>
                                     <div>
-                                        <p className="text-sm text-slate-500">Destination</p>
+                                        <p className="text-sm text-muted">Destination</p>
                                         <p className="font-semibold text-slate-800">{tracking.destination}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-3">
-                                    <Clock className="w-5 h-5 text-teal-500 mt-0.5"/>
+                                    <Clock className="w-5 h-5 text-cobalt mt-0.5"/>
                                     <div>
-                                        <p className="text-sm text-slate-500">Estimated Delivery</p>
+                                        <p className="text-sm text-muted">Estimated Delivery</p>
                                         <p className="font-semibold text-slate-800">{tracking.estimatedDelivery}</p>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-3">
-                                    <TruckIcon className="w-5 h-5 text-teal-500 mt-0.5"/>
+                                    <TruckIcon className="w-5 h-5 text-cobalt mt-0.5"/>
                                     <div>
-                                        <p className="text-sm text-slate-500">Driver</p>
+                                        <p className="text-sm text-muted">Driver</p>
                                         <p className="font-semibold text-slate-800">{tracking.truck.driver}</p>
-                                        <p className="text-xs text-slate-500 mt-1">Truck {tracking.truckId} • {tracking.truck.velocity} km/h</p>
+                                        <p className="text-xs text-muted mt-1">Truck {tracking.truckId} • {tracking.truck.velocity} km/h</p>
                                     </div>
                                 </div>
                             </div>
@@ -235,7 +235,7 @@ export default function TrackOrderPage() {
                             initial={{opacity: 0, y: 20}}
                             animate={{opacity: 1, y: 0}}
                             transition={{delay: 0.1}}
-                            className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6"
+                            className="bg-white rounded-lg shadow-sm border border-slate-200 p-6"
                         >
                             <h2 className="text-lg font-bold text-slate-800 mb-4">Delivery Timeline</h2>
 
@@ -244,24 +244,24 @@ export default function TrackOrderPage() {
                                     <div key={index} className="flex gap-4">
                                         <div className="flex flex-col items-center">
                                             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                                                event.completed ? 'bg-teal-500' : 'bg-slate-200'
+                                                event.completed ? 'bg-cobalt' : 'bg-slate-200'
                                             }`}>
                                                 {event.completed ? (
-                                                    <CheckCircle2 className="w-5 h-5 text-white"/>
+                                                    <CheckCircle2 className="w-5 h-5 text-ink"/>
                                                 ) : (
                                                     <div className="w-2 h-2 bg-slate-400 rounded-full"/>
                                                 )}
                                             </div>
                                             {index < tracking.timeline.length - 1 && (
                                                 <div
-                                                    className={`w-0.5 h-12 ${event.completed ? 'bg-teal-500' : 'bg-slate-200'}`}/>
+                                                    className={`w-0.5 h-12 ${event.completed ? 'bg-cobalt' : 'bg-slate-200'}`}/>
                                             )}
                                         </div>
                                         <div className="flex-1 pb-4">
-                                            <p className={`font-semibold ${event.completed ? 'text-slate-800' : 'text-slate-400'}`}>
+                                            <p className={`font-semibold ${event.completed ? 'text-slate-800' : 'text-muted'}`}>
                                                 {event.status}
                                             </p>
-                                            <p className="text-sm text-slate-500">{event.timestamp}</p>
+                                            <p className="text-sm text-muted">{event.timestamp}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -273,12 +273,12 @@ export default function TrackOrderPage() {
                             initial={{opacity: 0, y: 20}}
                             animate={{opacity: 1, y: 0}}
                             transition={{delay: 0.2}}
-                            className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-2xl border border-teal-200 p-6"
+                            className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg border border-teal-200 p-6"
                         >
                             <h3 className="font-bold text-slate-800 mb-2">Need Help?</h3>
-                            <p className="text-sm text-slate-600 mb-4">Our support team is available 24/7</p>
+                            <p className="text-sm text-muted mb-4">Our support team is available 24/7</p>
                             <button
-                                className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-3 rounded-lg transition-colors"
+                                className="w-full bg-cobalt hover:bg-teal-600 text-ink font-semibold py-3 rounded-lg transition-colors"
                                 onClick={() => setShowContactModal(true)}
                             >
                                 Contact Support
@@ -293,7 +293,7 @@ export default function TrackOrderPage() {
                         transition={{delay: 0.3}}
                         className="lg:col-span-2"
                     >
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-[600px] overflow-hidden">
+                        <div className="bg-white rounded-lg shadow-sm border border-slate-200 h-[600px] overflow-hidden">
                             <SupplyChainMap 
                                 trucks={[{
                                     id: tracking.truckId,
@@ -322,7 +322,7 @@ export default function TrackOrderPage() {
                         initial={{opacity: 0}}
                         animate={{opacity: 1}}
                         exit={{opacity: 0}}
-                        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+                        className="absolute inset-0 bg-black/50 "
                         onClick={() => setShowContactModal(false)}
                     />
 
@@ -331,12 +331,12 @@ export default function TrackOrderPage() {
                         initial={{opacity: 0, scale: 0.95}}
                         animate={{opacity: 1, scale: 1}}
                         exit={{opacity: 0, scale: 0.95}}
-                        className="relative bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md z-10"
+                        className="relative bg-white rounded-lg shadow-lg p-6 w-full max-w-md z-10"
                     >
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/20">
-                                    <MessageSquare className="w-5 h-5 text-teal-500"/>
+                                <div className="p-2 rounded-lg bg-mist border border-line">
+                                    <MessageSquare className="w-5 h-5 text-cobalt"/>
                                 </div>
                                 <h2 className="text-xl font-bold text-slate-800">Contact Support</h2>
                             </div>
@@ -344,20 +344,20 @@ export default function TrackOrderPage() {
                                 onClick={() => setShowContactModal(false)}
                                 className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
                             >
-                                <X className="w-5 h-5 text-slate-500"/>
+                                <X className="w-5 h-5 text-muted"/>
                             </button>
                         </div>
 
-                        <p className="text-slate-600 mb-6">Our support team is available 24/7 to assist you with your order.</p>
+                        <p className="text-muted mb-6">Our support team is available 24/7 to assist you with your order.</p>
 
                         <div className="space-y-4">
-                            <div className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
+                            <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
                                 <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-lg bg-teal-500/10">
-                                        <Phone className="w-5 h-5 text-teal-500"/>
+                                    <div className="p-2 rounded-lg bg-mist">
+                                        <Phone className="w-5 h-5 text-cobalt"/>
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm text-slate-500 mb-1">Phone</p>
+                                        <p className="text-sm text-muted mb-1">Phone</p>
                                         <a href="tel:+11234567890" className="font-semibold text-slate-800 hover:text-teal-600 transition-colors">
                                             +1 (123) 456-7890
                                         </a>
@@ -365,13 +365,13 @@ export default function TrackOrderPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-slate-50 rounded-xl p-4 hover:bg-slate-100 transition-colors">
+                            <div className="bg-slate-50 rounded-lg p-4 hover:bg-slate-100 transition-colors">
                                 <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-lg bg-teal-500/10">
-                                        <Mail className="w-5 h-5 text-teal-500"/>
+                                    <div className="p-2 rounded-lg bg-mist">
+                                        <Mail className="w-5 h-5 text-cobalt"/>
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm text-slate-500 mb-1">Email</p>
+                                        <p className="text-sm text-muted mb-1">Email</p>
                                         <a href="mailto:support@fleetfusion.com" className="font-semibold text-slate-800 hover:text-teal-600 transition-colors">
                                             support@fleetfusion.com
                                         </a>
@@ -379,15 +379,15 @@ export default function TrackOrderPage() {
                                 </div>
                             </div>
 
-                            <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-4 border border-teal-200">
+                            <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg p-4 border border-teal-200">
                                 <div className="flex items-start gap-3">
-                                    <div className="p-2 rounded-lg bg-teal-500">
-                                        <MessageSquare className="w-5 h-5 text-white"/>
+                                    <div className="p-2 rounded-lg bg-cobalt">
+                                        <MessageSquare className="w-5 h-5 text-ink"/>
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-sm text-slate-600 mb-1">Live Chat</p>
+                                        <p className="text-sm text-muted mb-1">Live Chat</p>
                                         <p className="font-semibold text-slate-800 mb-2">Available 24/7</p>
-                                        <button className="w-full bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                                        <button className="w-full bg-cobalt hover:bg-teal-600 text-ink font-semibold py-2 px-4 rounded-lg transition-colors">
                                             Start Chat
                                         </button>
                                     </div>
@@ -396,7 +396,7 @@ export default function TrackOrderPage() {
                         </div>
 
                         <div className="mt-6 pt-4 border-t border-slate-200">
-                            <p className="text-xs text-slate-500 text-center">
+                            <p className="text-xs text-muted text-center">
                                 Average response time: Less than 2 minutes
                             </p>
                         </div>
@@ -408,10 +408,10 @@ export default function TrackOrderPage() {
             <footer className="bg-white border-t border-slate-200 mt-12">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                        <p className="text-sm text-slate-500">© 2026 FleetFusion. Real-time tracking powered by AI.</p>
+                        <p className="text-sm text-muted">© 2026 FleetFusion. Real-time tracking powered by AI.</p>
                         <div className="flex gap-4">
-                            <a href="#" className="text-sm text-slate-500 hover:text-teal-600 transition-colors">Privacy Policy</a>
-                            <a href="#" className="text-sm text-slate-500 hover:text-teal-600 transition-colors">Terms of Service</a>
+                            <a href="#" className="text-sm text-muted hover:text-teal-600 transition-colors">Privacy Policy</a>
+                            <a href="#" className="text-sm text-muted hover:text-teal-600 transition-colors">Terms of Service</a>
                         </div>
                     </div>
                 </div>

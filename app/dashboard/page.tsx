@@ -1,156 +1,106 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
+import {useState} from 'react';
 import dynamic from 'next/dynamic';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Leaf, BarChart3, Zap, RotateCcw } from 'lucide-react';
-import { useWebSocket } from '@/lib/hooks/useWebSocket';
-import { formatINRCompact } from '@/lib/utils/format';
+import {AnimatePresence} from 'framer-motion';
+import AppShell from '@/components/layout/AppShell';
 import AgentOverlay from '@/components/dashboard/AgentOverlay';
 import FinancialModal from '@/components/dashboard/FinancialModal';
-import UserMenu from '@/components/dashboard/UserMenu';
-import DispatcherDesk from '@/components/dashboard/DispatcherDesk';
-import Image from 'next/image';
+import IncidentInbox from '@/components/dashboard/IncidentInbox';
+import TruckDetail from '@/components/dashboard/TruckDetail';
+import {useWebSocket} from '@/lib/hooks/useWebSocket';
+import {formatINRCompact} from '@/lib/utils/format';
 
-// Dynamic import for map component (Leaflet requires window object)
+// Leaflet needs the browser
 const SupplyChainMap = dynamic(() => import('@/components/SupplyChainMap'), {
-  ssr: false,
-  loading: () => (
-    <div className="absolute inset-0 flex items-center justify-center bg-slate-900/50 rounded-2xl overflow-hidden">
-      <div className="text-center">
-        <div className="text-6xl mb-4 animate-pulse">🗺️</div>
-        <h3 className="text-2xl font-bold text-white mb-2">Loading Map...</h3>
-        <p className="text-slate-400">Initializing real-time tracking</p>
-        <div className="mt-4 flex items-center justify-center gap-2">
-          <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-          <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-          <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
-        </div>
-      </div>
-    </div>
-  )
+    ssr: false,
+    loading: () => <div className="h-full flex items-center justify-center text-sm text-muted">Loading map…</div>,
 });
 
+function Kpi({label, value, tone, hint}: { label: string; value: string; tone?: string; hint?: string }) {
+    return (
+        <div className="bg-surface border border-line rounded-lg px-4 py-3">
+            <div className="label-caps">{label}</div>
+            <div className={`mono-numbers text-2xl font-semibold mt-1 ${tone ?? 'text-ink'}`}>{value}</div>
+            {hint && <div className="text-xs text-muted mt-0.5">{hint}</div>}
+        </div>
+    );
+}
+
 export default function DashboardPage() {
-  const [ecoRouteEnabled, setEcoRouteEnabled] = useState(false);
-  const { trucks, events, arbitrageOpportunity, executeArbitrage, dismissArbitrage, connected, error, metrics, classifyIncident, setAiEnabled, demoControl } = useWebSocket();
-  const onTimePct = metrics && metrics.trucks ? Math.round(((metrics.onTime + metrics.resolved) / metrics.trucks) * 100) : null;
+    const [selectedId, setSelectedId] = useState<string | null>(null);
+    const {
+        trucks, events, arbitrageOpportunity, executeArbitrage, dismissArbitrage, connected, error, metrics,
+        classifyIncident, setAiEnabled, demoControl, executeDecision,
+    } = useWebSocket();
+    const selected = trucks.find(t => t.id === selectedId) ?? null;
 
-  // Calculate total cargo value
-  const totalCargoValue = trucks.reduce((sum, truck) => sum + truck.cargoValue, 0);
+    const onTimePct = metrics && metrics.trucks ? Math.round(((metrics.onTime + metrics.resolved) / metrics.trucks) * 100) : null;
+    const needsDecision = trucks.filter(t => t.recommendation === 'EXECUTE' || t.recommendation === 'CONSIDER').length;
 
-  return (
-    <div className="h-screen w-screen overflow-hidden gradient-bg">
-      {/* Sidebar */}
-      <div className="fixed left-0 top-0 h-full w-72 glass-card border-r border-white/10 z-40 p-6">
-        <Link href="/" className="flex items-center gap-2 mb-8">
-          <div className="relative w-40 h-10">
-            <Image 
-              src="/Logo.png" 
-              alt="FleetFusion Logo" 
-              width={160} 
-              height={40}
-              className="object-contain"
-            />
-          </div>
-        </Link>
-        <nav className="space-y-2">
-          <Link href="/dashboard"><div className="flex items-center gap-3 px-4 py-3 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400"><Home className="w-5 h-5" /><span className="font-medium">Dashboard</span></div></Link>
-            <Link href="/analytics">
-                <div
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white transition-colors">
-                    <BarChart3 className="w-5 h-5"/><span className="font-medium">Analytics</span></div></Link>
-        </nav>
-        <div className="mt-6 overflow-y-auto pr-1" style={{ maxHeight: 'calc(100vh - 420px)' }}>
-          <DispatcherDesk trucks={trucks} onClassify={classifyIncident} />
-        </div>
-        <div className="absolute bottom-6 left-6 right-6">
-          <div className="glass-card p-4 rounded-lg">
-            <div className="text-xs text-slate-500 uppercase mb-2">System Status</div>
-            <div className="flex items-center gap-2">
-              <motion.div animate={{ scale: [1, 1.2, 1], opacity: [1, 0.5, 1] }} transition={{ duration: 2, repeat: Infinity }} className={`w-2 h-2 rounded-full ${connected ? 'bg-teal-500' : 'bg-red-500'}`} />
-              <span className={`text-sm font-semibold mono-numbers ${connected ? 'text-teal-400' : 'text-red-400'}`}>
-                {connected ? 'LIVE' : 'OFFLINE'}
-              </span>
+    const aiSwitch = (
+        <div className="flex items-center justify-between gap-2">
+            <div>
+                <div className="text-xs font-medium">AI explanations</div>
+                <div className="text-[11px] text-muted">
+                    {!metrics?.aiAvailable ? 'No local model' : metrics.aiEnabled ? 'On' : 'Off'} · decisions unchanged
+                </div>
             </div>
-            {error && (
-              <div className="text-xs text-red-400 mt-2">
-                {error}
-              </div>
+            <button aria-label="Toggle AI explanations" disabled={!metrics?.aiAvailable}
+                    onClick={() => setAiEnabled(!metrics?.aiEnabled)}
+                    className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-40 ${metrics?.aiEnabled ? 'bg-cobalt' : 'bg-line-strong'}`}>
+                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${metrics?.aiEnabled ? 'translate-x-4' : ''}`}/>
+            </button>
+        </div>
+    );
+
+    const demoButtons = metrics?.demoControls ? (
+        <div className="flex items-center gap-1 border border-line rounded-md px-1 py-1">
+            <span className="label-caps px-1">Demo</span>
+            <button onClick={() => demoControl('breakdown')} className="text-xs px-2 py-1 rounded hover:bg-paper">Breakdown</button>
+            <button onClick={() => demoControl('reset')} className="text-xs px-2 py-1 rounded hover:bg-paper">Reset</button>
+        </div>
+    ) : null;
+
+    return (
+        <AppShell active="dashboard" title="Operations"
+                  subtitle={`${trucks.length} trucks · South India network${error && !connected ? ` · ${error}` : ''}`}
+                  connected={connected} actions={demoButtons} sidebarFooter={aiSwitch}>
+            <div className="h-full p-4 flex flex-col gap-4 min-h-[720px]">
+                <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 shrink-0">
+                    <Kpi label="Trucks tracked" value={String(trucks.length)} hint={`${metrics?.signalLost ?? 0} without signal`}/>
+                    <Kpi label="On time" value={onTimePct === null ? '—' : `${onTimePct}%`} tone="text-clear"/>
+                    <Kpi label="Money at risk now" value={formatINRCompact(metrics?.exposure ?? 0)} tone="text-alert"
+                         hint={`${metrics?.critical ?? 0} critical`}/>
+                    <Kpi label="Saved this session" value={formatINRCompact(metrics?.netSavings ?? 0)} tone="text-clear"
+                         hint={`${metrics?.decisions ?? 0} decisions executed`}/>
+                    <Kpi label="Decisions waiting" value={String(needsDecision)} tone={needsDecision ? 'text-cobalt' : 'text-ink'}/>
+                </div>
+
+                <div className="flex-1 min-h-0 grid grid-cols-1 xl:grid-cols-12 gap-4">
+                    <div className="xl:col-span-5 min-h-0 flex flex-col">
+                        <IncidentInbox trucks={trucks} selectedId={selectedId} onSelect={setSelectedId}/>
+                    </div>
+                    <div className="xl:col-span-7 min-h-0 grid grid-rows-[3fr_2fr] gap-4">
+                        <div className="relative bg-surface border border-line rounded-lg overflow-hidden min-h-[320px]">
+                            <SupplyChainMap trucks={trucks} ecoMode={false} onSelect={setSelectedId} selectedId={selectedId}/>
+                        </div>
+                        <AgentOverlay events={events}/>
+                    </div>
+                </div>
+            </div>
+
+            {selected && (
+                <TruckDetail truck={selected} onClose={() => setSelectedId(null)}
+                             onExecute={(id, incidentId) => executeDecision(id, incidentId)}
+                             onClassify={classifyIncident}/>
             )}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-white/10">
-              <div>
-                <div className="text-xs text-slate-400">AI explanations</div>
-                <div className="text-[10px] text-slate-500">
-                  {!metrics?.aiAvailable ? 'No local model · deterministic mode' : metrics.aiEnabled ? 'On · decisions unchanged' : 'Off · decisions unchanged'}
-                </div>
-              </div>
-              <button
-                aria-label="Toggle AI explanations"
-                disabled={!metrics?.aiAvailable}
-                onClick={() => setAiEnabled(!metrics?.aiEnabled)}
-                className={`relative w-9 h-5 rounded-full transition-colors disabled:opacity-40 ${metrics?.aiEnabled ? 'bg-teal-500' : 'bg-slate-700'}`}
-              >
-                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${metrics?.aiEnabled ? 'translate-x-4' : ''}`} />
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="ml-72 flex flex-col h-full">
-        {/* Top Bar */}
-        <div className="glass-nav border-b border-white/10 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div><h1 className="text-xl font-bold text-white">Command Center</h1><p className="text-sm text-slate-400">Pune, India</p></div>
-            <div className="flex items-center gap-3">
-              {metrics?.demoControls && (
-                <div className="flex items-center gap-2 px-2 py-1.5 glass-card rounded-lg border border-amber-500/20">
-                  <span className="text-[10px] font-semibold uppercase text-amber-400/80 px-1">Demo</span>
-                  <button onClick={() => demoControl('breakdown')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-red-500/15 hover:bg-red-500/25 text-red-300 text-sm font-medium transition-colors">
-                    <Zap className="w-4 h-4" />Trigger breakdown
-                  </button>
-                  <button onClick={() => demoControl('reset')} className="flex items-center gap-1.5 px-3 py-1.5 rounded-md hover:bg-white/10 text-slate-300 text-sm font-medium transition-colors">
-                    <RotateCcw className="w-4 h-4" />Reset
-                  </button>
-                </div>
-              )}
-              <div className="flex items-center gap-3 px-4 py-2 glass-card rounded-lg">
-                <Leaf className={`w-4 h-4 ${ecoRouteEnabled ? 'text-green-400' : 'text-slate-500'}`} />
-                <span className="text-sm font-medium text-white">Eco</span>
-                <button onClick={() => setEcoRouteEnabled(!ecoRouteEnabled)} className={`relative w-11 h-6 rounded-full ${ecoRouteEnabled ? 'bg-teal-500' : 'bg-slate-700'}`}>
-                  <motion.div animate={{ x: ecoRouteEnabled ? 20 : 0 }} transition={{ type: 'spring', stiffness: 500, damping: 30 }} className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full" />
-                </button>
-              </div>
-                <UserMenu/>
-            </div>
-          </div>
-          <div className="grid grid-cols-4 gap-4 mt-4">
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Active</div><div className="text-2xl font-bold text-white mono-numbers">{trucks.length}</div></div>
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Cargo</div><div className="text-2xl font-bold text-teal-400 mono-numbers">{formatINRCompact(totalCargoValue)}</div></div>
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">On-Time</div><div className="text-2xl font-bold text-cyan-400 mono-numbers">{onTimePct === null ? '—' : `${onTimePct}%`}</div></div>
-            <div className="glass-card p-3 rounded-lg"><div className="text-xs text-slate-500 uppercase mb-1">Saved</div><div className="text-2xl font-bold text-orange-400 mono-numbers">{formatINRCompact(metrics?.netSavings ?? 0)}</div></div>
-          </div>
-        </div>
-
-        {/* Live Map with Real-Time Tracking */}
-        <div className="flex-1 flex gap-4 p-4 overflow-hidden">
-          {/* Map Container */}
-          <div className="flex-1 rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-            <SupplyChainMap trucks={trucks} ecoMode={ecoRouteEnabled} />
-          </div>
-          
-          {/* Agent Stream - Embedded on right side */}
-          <AgentOverlay events={events} />
-        </div>
-      </div>
-
-      {/* Financial Modal */}
-      <AnimatePresence>
-        {arbitrageOpportunity && <FinancialModal opportunity={arbitrageOpportunity} onExecute={executeArbitrage} onDismiss={dismissArbitrage} />}
-      </AnimatePresence>
-    </div>
-  );
+            <AnimatePresence>
+                {arbitrageOpportunity && !selected && (
+                    <FinancialModal opportunity={arbitrageOpportunity} onExecute={executeArbitrage} onDismiss={dismissArbitrage}/>
+                )}
+            </AnimatePresence>
+        </AppShell>
+    );
 }

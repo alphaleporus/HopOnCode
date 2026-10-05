@@ -1,214 +1,132 @@
-'use client';
-
-import {useState} from 'react';
-import {motion} from 'framer-motion';
-import Link from 'next/link';
 import Image from 'next/image';
-import {useRouter} from 'next/navigation';
-import {Zap, Globe, ArrowRight, Sparkles, Package, Search } from 'lucide-react';
-import FeatureCards from '@/components/landing/FeatureCards';
+import Link from 'next/link';
+import {ArrowRight, Calculator, Gauge, Radio, Stethoscope} from 'lucide-react';
+
+const STATS = [
+    {value: '₹24 L Cr', label: 'India’s yearly logistics cost (7.97% of GDP)', source: 'DPIIT–NCAER, FY24'},
+    {value: '5–25%', label: 'of a truck’s journey time lost to stoppages', source: 'TCI–IIM highway study'},
+    {value: '63%', label: 'of 6,880 real Indian truck trips arrived late', source: 'Open dataset, CC BY-SA'},
+    {value: '0', label: 'actions needed from the driver', source: 'Machine signals only'},
+];
+
+const STEPS = [
+    {icon: Radio, title: 'Detect', text: 'Reads the GPS tracker every truck already carries. A stop or a silent tracker is flagged in seconds.'},
+    {icon: Stethoscope, title: 'Diagnose', text: 'Works out why it stopped from engine fault codes, crash alarms and ignition. Dispatchers can correct it.'},
+    {icon: Calculator, title: 'Price', text: 'Projects arrival against the contract deadline, grace period, penalty cap and cold-chain limits.'},
+    {icon: Gauge, title: 'Decide', text: 'Compares waiting against every relief carrier by expected cost, and recommends the cheapest fix.'},
+];
+
+const INTEGRATIONS = [
+    {name: 'Traccar / AIS-140 trackers', state: 'Live in demo'},
+    {name: 'HTTP API + decision webhooks', state: 'Live in demo'},
+    {name: 'SAP Track & Trace', state: 'Next connector'},
+    {name: 'Fleet telematics platforms', state: 'Next connector'},
+];
 
 export default function LandingPage() {
-    const router = useRouter();
-    const [orderId, setOrderId] = useState('');
-
-    const handleTrackOrder = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (orderId.trim()) {
-            router.push(`/track/${orderId.trim()}`);
-        }
-    };
-
     return (
-    <div className="min-h-screen gradient-bg">
-      {/* Navbar */}
-      <nav className="fixed top-0 w-full z-50 glass-nav">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="relative w-48 h-12">
-                <Image 
-                  src="/Logo.png" 
-                  alt="FleetFusion Logo" 
-                  width={192} 
-                  height={48}
-                  className="object-contain"
-                />
-              </div>
-            </Link>
-            <div className="hidden md:flex items-center gap-8">
-              <Link href="#platform" className="text-sm text-slate-300 hover:text-white transition-colors">Platform</Link>
-              <Link href="#solutions" className="text-sm text-slate-300 hover:text-white transition-colors">Solutions</Link>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link href="/login">
-                  <button className="btn-ghost px-4 py-2 rounded-lg text-sm">Login</button>
-              </Link>
-              <Link href="/login"><button className="btn-primary px-6 py-2 rounded-lg text-sm flex items-center gap-2">Book Demo<ArrowRight className="w-4 h-4" /></button></Link>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Hero */}
-      <section className="relative pt-32 pb-20 px-6 overflow-hidden">
-        <div className="absolute inset-0 grid-pattern opacity-50" />
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
-              <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.2 }} className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-6">
-                <Sparkles className="w-4 h-4 text-teal-400" />
-                <span className="text-sm text-teal-400 font-semibold">Plugs into your TMS & GPS trackers</span>
-              </motion.div>
-              <h1 className="text-5xl lg:text-7xl font-bold text-white mb-6 tracking-tight leading-tight">
-                Supply Chain is Broken.{' '}
-                <motion.span initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5, duration: 1 }} className="gradient-text">
-                  We Automate the Fix.
-                </motion.span>
-              </h1>
-              <p className="text-xl text-slate-400 mb-8 leading-relaxed">
-                Detects stalled trucks from GPS and engine data, prices the delay against each contract, and recommends the cheapest fix in seconds. No driver app, no AI dependency.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/login">
-                  <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="btn-primary px-8 py-4 rounded-xl text-lg font-semibold glow-teal flex items-center gap-3 w-full sm:w-auto justify-center">
-                    <Zap className="w-5 h-5" />Launch FleetFusion OS
-                  </motion.button>
-                </Link>
-                <button className="btn-ghost px-8 py-4 rounded-xl text-lg font-semibold">Watch Demo</button>
-              </div>
-              <div className="grid grid-cols-3 gap-6 mt-12">
-                {/* Sources: DPIIT-NCAER logistics cost study (FY24); TCI-IIM highway freight study */}
-                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">₹24L Cr</div><div className="text-sm text-slate-500">India logistics cost / yr (7.97% of GDP)</div></div>
-                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">5–25%</div><div className="text-sm text-slate-500">Journey time lost to stoppages</div></div>
-                <div><div className="text-3xl font-bold text-teal-400 mono-numbers">0</div><div className="text-sm text-slate-500">Driver actions needed</div></div>
-              </div>
-            </motion.div>
-            <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4, duration: 0.8 }} className="relative">
-              <div className="relative transform rotate-3 hover:rotate-0 transition-transform duration-500">
-                <div className="glass-card rounded-2xl p-6 border-2 border-teal-500/20">
-                  <div className="aspect-video bg-slate-900/50 rounded-xl overflow-hidden relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-teal-500/10 to-transparent" />
-                    <Image src="/dashboard-demo.jpg" alt="FleetFusion recommending the cheapest fix for a broken-down truck" width={800} height={600} className="object-cover object-center" />
-                  </div>
+        <div className="min-h-screen bg-paper text-ink">
+            <header className="bg-surface border-b border-line">
+                <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+                    <Image src="/brand/logo/logo-primary.svg" alt="Fleet Fusion" width={150} height={32} priority/>
+                    <nav className="flex items-center gap-6 text-sm">
+                        <a href="#how" className="text-ink-2 hover:text-cobalt">How it works</a>
+                        <a href="#impact" className="text-ink-2 hover:text-cobalt">Impact</a>
+                        <Link href="/login" className="btn-ghost px-3 py-1.5 rounded-md">Log in</Link>
+                        <Link href="/dashboard" className="btn-primary px-3 py-1.5 rounded-md flex items-center gap-1.5">
+                            Open live demo <ArrowRight className="w-4 h-4"/>
+                        </Link>
+                    </nav>
                 </div>
-                <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 3, repeat: Infinity }} className="absolute -top-4 -right-4 glass-card px-4 py-2 rounded-full border border-teal-500/30">
-                  <span className="text-sm font-semibold text-teal-400">💰 ₹22,516 saved on one breakdown</span>
-                </motion.div>
-              </div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+            </header>
 
-      {/* Customer Tracking Section */}
-        <section className="py-20 px-6 relative">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-teal-500/5 to-transparent"/>
-            <div className="max-w-4xl mx-auto relative z-10">
-                <motion.div
-                    initial={{opacity: 0, y: 20}}
-                    whileInView={{opacity: 1, y: 0}}
-                    viewport={{once: true}}
-                    className="glass-card rounded-3xl p-8 md:p-12 border border-teal-500/20"
-                >
-                    <div className="text-center mb-8">
-                        <div
-                            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 border border-teal-500/30 mb-4">
-                            <Package className="w-8 h-8 text-teal-400"/>
+            <main>
+                <section className="max-w-6xl mx-auto px-6 py-16 grid lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <p className="label-caps !text-cobalt">Delay decision engine for road freight</p>
+                        <h1 className="text-4xl lg:text-5xl font-semibold leading-tight mt-3">
+                            Know what a late truck will cost, and the cheapest fix, in seconds.
+                        </h1>
+                        <p className="text-lg text-ink-2 mt-5 leading-relaxed">
+                            FleetFusion reads the trackers your trucks already carry, prices each delay against the customer’s
+                            contract, and recommends the cheapest recovery. It plugs into the systems you already run.
+                            No driver app. No AI dependency.
+                        </p>
+                        <div className="flex gap-3 mt-8">
+                            <Link href="/dashboard" className="btn-primary px-5 py-2.5 rounded-md flex items-center gap-2">
+                                Open live demo <ArrowRight className="w-4 h-4"/>
+                            </Link>
+                            <Link href="/analytics" className="btn-ghost px-5 py-2.5 rounded-md">See the impact</Link>
                         </div>
-                        <h2 className="text-3xl lg:text-4xl font-bold text-white mb-3">Track Your Order</h2>
-                        <p className="text-lg text-slate-400">Enter your order ID to get real-time tracking updates</p>
                     </div>
+                    <div className="bg-surface border border-line rounded-lg p-2 shadow-sm">
+                        <Image src="/fleetfusion-decision.jpg" alt="FleetFusion operations dashboard" width={1600} height={1000}
+                               className="rounded-md w-full h-auto" priority/>
+                    </div>
+                </section>
 
-                    <form onSubmit={handleTrackOrder} className="max-w-2xl mx-auto">
-                        <div className="flex flex-col sm:flex-row gap-3">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"/>
-                                <input
-                                    type="text"
-                                    value={orderId}
-                                    onChange={(e) => setOrderId(e.target.value)}
-                                    placeholder="Enter Order ID (e.g., ORD-402)"
-                                    className="w-full pl-12 pr-4 py-4 rounded-xl bg-slate-800/50 border border-white/10 text-white placeholder-slate-500 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none text-lg"
-                                />
+                <section className="border-y border-line bg-surface">
+                    <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        {STATS.map(s => (
+                            <div key={s.label}>
+                                <div className="mono-numbers text-3xl font-semibold text-cobalt">{s.value}</div>
+                                <div className="text-sm text-ink-2 mt-2">{s.label}</div>
+                                <div className="label-caps mt-1">{s.source}</div>
                             </div>
-                            <motion.button
-                                type="submit"
-                                whileHover={{scale: 1.02}}
-                                whileTap={{scale: 0.98}}
-                                className="btn-primary px-8 py-4 rounded-xl text-lg font-semibold whitespace-nowrap"
-                            >
-                                Track Order
-                            </motion.button>
-                        </div>
-                    </form>
-
-                    <div className="mt-6 text-center">
-                        <p className="text-sm text-slate-500">Try sample: </p>
-                        <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                            {['ORD-402', 'ORD-305', 'ORD-518'].map((sampleId) => (
-                                <button
-                                    key={sampleId}
-                                    onClick={() => router.push(`/track/${sampleId}`)}
-                                    className="px-4 py-2 rounded-lg bg-slate-800/50 border border-white/10 text-teal-400 text-sm font-mono hover:bg-slate-800 hover:border-teal-500/30 transition-all"
-                                >
-                                    {sampleId}
-                                </button>
-                            ))}
-                        </div>
+                        ))}
                     </div>
-                </motion.div>
-        </div>
-      </section>
+                </section>
 
-      {/* Features */}
-      <section className="py-20 px-6" id="platform">
-        <div className="max-w-7xl mx-auto">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="text-center mb-16">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">Delay Decisions, Priced in Real Time</h2>
-            <p className="text-xl text-slate-400 max-w-2xl mx-auto">The platform that thinks, acts, and saves money while you sleep.</p>
-          </motion.div>
-          <FeatureCards />
-        </div>
-      </section>
+                <section id="how" className="max-w-6xl mx-auto px-6 py-16">
+                    <h2 className="text-2xl font-semibold">How it works</h2>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mt-8">
+                        {STEPS.map(({icon: Icon, title, text}, i) => (
+                            <div key={title} className="bg-surface border border-line rounded-lg p-5">
+                                <div className="flex items-center gap-2">
+                                    <span className="label-caps">0{i + 1}</span>
+                                    <Icon className="w-4 h-4 text-cobalt"/>
+                                </div>
+                                <h3 className="font-semibold mt-3">{title}</h3>
+                                <p className="text-sm text-ink-2 mt-2 leading-relaxed">{text}</p>
+                            </div>
+                        ))}
+                    </div>
+                </section>
 
-      {/* Social Proof */}
-      <section className="py-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-8"><p className="text-sm text-slate-500 uppercase tracking-wider">Trusted by Leading Logistics Companies</p></div>
-          <div className="flex items-center justify-center gap-12 flex-wrap opacity-30 grayscale">
-            {['LogistiCorp', 'GlobalFreight', 'ShipMasters', 'CargoLink', 'FastTrack'].map((name) => (
-              <div key={name} className="text-2xl font-bold text-white">{name}</div>
-            ))}
-          </div>
-        </div>
-      </section>
+                <section id="impact" className="max-w-6xl mx-auto px-6 pb-16 grid lg:grid-cols-2 gap-6">
+                    <div className="bg-surface border border-line rounded-lg p-6">
+                        <p className="label-caps">Impact, same incidents handled two ways</p>
+                        <div className="mono-numbers text-4xl font-semibold text-clear mt-3">≈ ₹9 L / month</div>
+                        <p className="text-sm text-ink-2 mt-1">per 100 trucks, middle case (₹3–16 L across our assumption range)</p>
+                        <ul className="text-sm text-ink-2 mt-5 space-y-1.5">
+                            <li>Cost per incident <span className="mono-numbers">₹7,705 → ₹3,639</span></li>
+                            <li>Incidents ending in a late delivery <span className="mono-numbers">24% → 12%</span></li>
+                            <li>Relief trucks booked <span className="mono-numbers">29% → 14%</span>: fewer bookings, less CO₂</li>
+                        </ul>
+                        <Link href="/analytics" className="inline-flex items-center gap-1.5 text-sm text-cobalt font-medium mt-5">
+                            Adjust the assumptions <ArrowRight className="w-4 h-4"/>
+                        </Link>
+                    </div>
+                    <div className="bg-surface border border-line rounded-lg p-6">
+                        <p className="label-caps">Plugs into what you already run</p>
+                        <ul className="mt-4 divide-y divide-line">
+                            {INTEGRATIONS.map(i => (
+                                <li key={i.name} className="py-3 flex items-center justify-between">
+                                    <span className="text-sm">{i.name}</span>
+                                    <span className={`text-xs px-2 py-0.5 rounded ${i.state === 'Live in demo' ? 'bg-clear/10 text-clear' : 'bg-mist text-cobalt'}`}>{i.state}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                </section>
+            </main>
 
-      {/* Final CTA */}
-      <section className="py-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="glass-card rounded-3xl p-12 border-2 border-teal-500/20">
-            <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">Ready to Automate Your Supply Chain?</h2>
-            <p className="text-xl text-slate-400 mb-8">Join the future of logistics. Start saving millions today.</p>
-            <Link href="/login">
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="btn-primary px-10 py-5 rounded-xl text-lg font-semibold glow-teal inline-flex items-center gap-3">
-                <Globe className="w-6 h-6" />Launch FleetFusion<ArrowRight className="w-5 h-5" />
-              </motion.button>
-            </Link>
-          </motion.div>
+            <footer className="border-t border-line bg-surface">
+                <div className="max-w-6xl mx-auto px-6 py-6 flex justify-between text-xs text-muted">
+                    <span>© 2026 Fleet Fusion · Craftverse 2.0</span>
+                    <span>Free and open-source stack · Penalty rates in the demo are illustrative</span>
+                </div>
+            </footer>
         </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-white/5 py-8 px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="text-sm text-slate-500">© 2026 FleetFusion. All rights reserved.</div>
-          <div className="flex items-center gap-6">
-            <Link href="#" className="text-sm text-slate-500 hover:text-white transition-colors">Privacy</Link>
-            <Link href="#" className="text-sm text-slate-500 hover:text-white transition-colors">Terms</Link>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
+    );
 }

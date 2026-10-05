@@ -25,7 +25,15 @@ KNOTS_TO_KMH = 1.852
 
 
 class FastHTTPServer(ThreadingHTTPServer):
-    """ThreadingHTTPServer without the reverse-DNS lookup in server_bind (can hang for a long time on macOS)."""
+    """ThreadingHTTPServer tuned for bursty integrations.
+
+    - no reverse-DNS lookup in server_bind (can hang for a long time on macOS)
+    - a deep accept queue: the default of 5 drops connections when Traccar forwards a burst of
+      positions and events every second, which shows up as every truck going "signal lost"
+    """
+
+    request_queue_size = 1024
+    daemon_threads = True
 
     def server_bind(self):
         socketserver.TCPServer.server_bind(self)

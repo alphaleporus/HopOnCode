@@ -3,6 +3,8 @@
 import React, { useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
 import { Truck } from '@/lib/types';
+import { formatINRCompact } from '@/lib/utils/format';
+import { STATUS, statusStyle } from '@/lib/status';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
@@ -12,6 +14,23 @@ const INDIA_CENTER: [number, number] = [20.5937, 78.9629];
 interface SupplyChainMapProps {
   trucks: Truck[];
   ecoMode: boolean;
+  onSelect?: (truckId: string) => void;
+  selectedId?: string | null;
+}
+
+// Leaflet measures its container once; re-measure when the layout settles or resizes,
+// otherwise tiles only load in part of the map.
+function SizeWatcher() {
+  const map = useMap();
+  useEffect(() => {
+    const container = map.getContainer();
+    const fix = () => map.invalidateSize();
+    const timer = setTimeout(fix, 250);
+    const observer = new ResizeObserver(fix);
+    observer.observe(container);
+    return () => { clearTimeout(timer); observer.disconnect(); };
+  }, [map]);
+  return null;
 }
 
 // Component to handle map bounds based on trucks (only on initial load)
@@ -123,38 +142,20 @@ function CenterButton({ trucks }: { trucks: Truck[] }) {
 }
 
 // Custom truck icon
-const createTruckIcon = (status: string) => {
-  const color = status === 'signal-lost' ? '#64748b' :
-                status === 'resolved' ? '#a855f7' : 
-                status === 'on-time' ? '#10b981' : 
-                status === 'delayed' ? '#f59e0b' : 
-                status === 'critical' ? '#ef4444' : '#10b981';
+const createTruckIcon = (status: string, selected = false) => {
+  const color = statusStyle(status).hex;
+  const size = selected ? 18 : 14;
+  // Flat status dot: brand calm, readable at a glance; the selected truck gets an ink ring
   return L.divIcon({
     className: 'custom-truck-icon',
-    html: `
-      <div style="
-        background: ${color};
-        border: 2px solid white;
-        border-radius: 50%;
-        width: 28px;
-        height: 28px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 0 15px ${color}90;
-        transition: all 0.3s ease;
-      ">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="white" stroke="white" stroke-width="2">
-          <path d="M10 17h4V5H2v12h3m5 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm9 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0-9V2l3 3-3 3Z"/>
-        </svg>
-      </div>
-    `,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    html: `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${color};
+      border:2px solid #fff;box-shadow:0 0 0 ${selected ? 2 : 1}px ${selected ? '#14171F' : 'rgba(20,23,31,0.25)'};"></div>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 };
 
-export default function SupplyChainMap({ trucks, ecoMode }: SupplyChainMapProps) {
+export default function SupplyChainMap({ trucks, ecoMode, onSelect, selectedId }: SupplyChainMapProps) {
   // Define world bounds to prevent infinite scrolling
   const worldBounds: L.LatLngBoundsExpression = [
     [-85, -180], // Southwest coordinates
@@ -180,6 +181,7 @@ export default function SupplyChainMap({ trucks, ecoMode }: SupplyChainMapProps)
           noWrap={true}
         />
 
+        <SizeWatcher />
         <MapBoundsHandler trucks={trucks} />
         <CenterButton trucks={trucks} />
 
@@ -190,12 +192,9 @@ export default function SupplyChainMap({ trucks, ecoMode }: SupplyChainMapProps)
               <Polyline
                 positions={truck.route.map(coord => [coord[1], coord[0]])}
                 pathOptions={{
-                  color: truck.status === 'signal-lost' ? '#64748b' :
-                         truck.status === 'resolved' ? '#a855f7' :
-                         truck.status === 'critical' ? '#ef4444' : 
-                         truck.status === 'delayed' ? '#f59e0b' : '#10b981',
-                  weight: 4,
-                  opacity: 0.8,
+                  color: statusStyle(truck.status).hex,
+                  weight: truck.id === selectedId ? 5 : 3,
+                  opacity: truck.id === selectedId ? 0.95 : 0.55,
                   dashArray: ecoMode ? '10, 10' : undefined,
                 }}
               />
@@ -204,32 +203,27 @@ export default function SupplyChainMap({ trucks, ecoMode }: SupplyChainMapProps)
             {/* Truck marker */}
             <Marker
               position={[truck.position[1], truck.position[0]]}
-              icon={createTruckIcon(truck.status)}
+              icon={createTruckIcon(truck.status, truck.id === selectedId)}
+              eventHandlers={onSelect ? { click: () => onSelect(truck.id) } : undefined}
             >
               <Popup>
                 <div className="text-sm min-w-[200px]">
-                  <div className="font-bold text-lg text-slate-900 mb-2">{truck.id}</div>
+                  <div className="font-bold text-lg text-ink mb-2">{truck.id}</div>
                   <div className="space-y-1">
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Driver:</span>
-                      <span className="font-medium text-slate-900">{truck.driver}</span>
+                      <span className="text-muted">Vehicle:</span>
+                      <span className="font-medium text-ink">{truck.driver}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Cargo:</span>
-                      <span className="font-medium text-slate-900">${(truck.cargoValue / 1000).toFixed(0)}K</span>
+                      <span className="text-muted">Cargo:</span>
+                      <span className="font-medium text-ink">{formatINRCompact(truck.cargoValue)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-slate-600">Speed:</span>
-                      <span className="font-medium text-slate-900">{truck.velocity} km/h</span>
+                      <span className="text-muted">Speed:</span>
+                      <span className="font-medium text-ink">{truck.velocity} km/h</span>
                     </div>
-                    <div className={`mt-2 px-2 py-1 rounded text-center font-semibold ${
-                      truck.status === 'signal-lost' ? 'bg-slate-200 text-slate-700' :
-                      truck.status === 'resolved' ? 'bg-purple-100 text-purple-700' :
-                      truck.status === 'on-time' ? 'bg-green-100 text-green-700' :
-                      truck.status === 'delayed' ? 'bg-amber-100 text-amber-700' : 
-                      'bg-red-100 text-red-700'
-                    }`}>
-                      {truck.status.toUpperCase().replace('-', ' ')}
+                    <div className={`mt-2 px-2 py-1 rounded text-center font-semibold ${statusStyle(truck.status).chip}`}>
+                      {statusStyle(truck.status).label}
                     </div>
                   </div>
                 </div>
@@ -241,37 +235,12 @@ export default function SupplyChainMap({ trucks, ecoMode }: SupplyChainMapProps)
       </MapContainer>
 
       {/* Legend */}
-      <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur-lg border border-white/10 rounded-lg p-4 text-xs z-[1000] shadow-xl">
-        <div className="font-semibold text-slate-200 mb-3 text-sm">Status Legend</div>
-        <div className="space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-full bg-green-500 shadow-lg"></div>
-            <span className="text-slate-300">On Time</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-full bg-amber-500 shadow-lg"></div>
-            <span className="text-slate-300">Delayed</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-full bg-red-500 shadow-lg"></div>
-            <span className="text-slate-300">Critical</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-full bg-purple-500 shadow-lg"></div>
-            <span className="text-slate-300">Resolved</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-4 h-4 rounded-full bg-slate-500 shadow-lg"></div>
-            <span className="text-slate-300">Signal lost</span>
-          </div>
-        </div>
-        
-        {trucks.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-white/10">
-            <div className="text-slate-400 text-xs">Active Trucks</div>
-            <div className="text-teal-400 text-xl font-bold font-mono">{trucks.length}</div>
-          </div>
-        )}
+      <div className="absolute bottom-6 left-3 bg-surface/95 border border-line rounded-md px-3 py-2 z-[1000] flex flex-wrap gap-x-3 gap-y-1">
+        {Object.entries(STATUS).map(([key, st]) => (
+          <span key={key} className="flex items-center gap-1.5 text-[11px] text-ink-2">
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: st.hex }} />{st.label}
+          </span>
+        ))}
       </div>
     </div>
   );

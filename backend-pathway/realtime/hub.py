@@ -86,13 +86,19 @@ class RealtimeHub:
         self.events: deque = deque(maxlen=max_events)
         self.decisions: deque = deque(maxlen=200)  # operator decisions, newest first (full log: output/decisions.jsonl)
         self._prev: Dict[str, Dict] = {}   # truck_id -> last seen decision (for event derivation)
+        # Status events are debounced: a new status must hold this long before it is announced
+        self.status_debounce_s = float(os.getenv("STATUS_DEBOUNCE_SECONDS", "5"))
+        # Hysteresis: calming down must hold longer than escalating before it is announced
+        self.status_downgrade_s = float(os.getenv("STATUS_DOWNGRADE_SECONDS", "30"))
+        self._announced: Dict[str, str] = {}          # truck_id -> last announced status
+        self._pending: Dict[str, tuple] = {}          # truck_id -> (status, first seen wall time)
         self._dirty = False
         self._clients = set()
         self._loop: Optional[asyncio.AbstractEventLoop] = None
         self._started = time.time()
         self._updates = 0
         # Signal-lost detection runs on the wall clock: a silent tracker produces no events at all
-        self.signal_lost_s = float(os.getenv("SIGNAL_LOST_SECONDS", "30"))
+        self.signal_lost_s = float(os.getenv("SIGNAL_LOST_SECONDS", "90"))
         self._last_seen: Dict[str, tuple] = {}  # truck_id -> (readings, wall time the count last changed)
         self._lost: set = set()
         # AI is optional: explanations shown only if a model is reachable AND the operator leaves it on
@@ -131,33 +137,58 @@ class RealtimeHub:
                 self._last_seen[tid] = (d.get("readings"), time.time())
             if prev is None:
                 self._prev[tid] = d
+                self._announced[tid] = d["status"]
                 if d["status"] != "on-time":
                     self._event_for_status(d, row)
                 continue
             if d.get("incident") and d["incident"] != prev.get("incident") \
                     and d.get("incident_source") != "dispatcher":  # dispatcher changes are logged when made
-                self._event("sensor", f"📟 {tid} telematics signal → {d['incident'].replace('_', ' ')}", "warning")
-            if d["status"] != prev["status"]:
-                self._event_for_status(d, row)
+                self._event("sensor", f"{tid} tracker reports: {d['incident'].replace('_', ' ')}", "warning")
+            self._debounced_status_event(d, row)
             if d["recommendation"] == EXECUTE and prev.get("recommendation") != EXECUTE:
-                self._event("arbitrage", f"💎 ARBITRAGE OPPORTUNITY - {tid}: {d['best']} saves "
-                                         f"{self._money(d['net_savings'], d)} (confidence {d['confidence']:.0%})",
+                self._event("arbitrage", f"{tid} decision needed: {d['best']} saves "
+                                         f"{self._money(d['net_savings'], d)} ({d['confidence']:.0%} confidence)",
                             "critical")
             self._prev[tid] = d
+
+    def _debounced_status_event(self, d: Dict, row: Dict):
+        tid, status, now = d["truck_id"], d["status"], time.time()
+        if status == self._announced.get(tid):
+            self._pending.pop(tid, None)
+            return
+        rank = {"on-time": 0, "resolved": 0, "delayed": 1, "signal-lost": 1, "critical": 2}
+        escalating = rank.get(status, 0) > rank.get(self._announced.get(tid, "on-time"), 0)
+        hold = self.status_debounce_s if escalating else self.status_downgrade_s
+        pending = self._pending.get(tid)
+        if pending is None or pending[0] != status:
+            self._pending[tid] = (status, now)
+            if hold > 0:
+                return
+        elif now - pending[1] < hold:
+            return
+        self._pending.pop(tid, None)
+        self._announced[tid] = status
+        self._event_for_status(d, row)
 
     def _event_for_status(self, d: Dict, row: Dict):
         tid, status = d["truck_id"], d["status"]
         if status == "critical":
-            why = d["incident"].replace("_", " ") if d["incident"] else "stopped"
-            self._event("alert", f"⚠️ {tid} CRITICAL - {why}, {d['lateness_hours']:.1f} h late, "
-                                 f"{self._money(d['exposure'], d)} exposure", "critical")
+            why = d["incident"].replace("_", " ") if d["incident"] else ("stopped" if d["stopped"] else "running late")
+            self._event("alert", f"{tid} critical: {why}, {d['lateness_hours']:.1f} h late, "
+                                 f"{self._money(d['exposure'], d)} at risk", "critical")
         elif status == "delayed":
-            why = f"stopped {d['stopped_minutes']:.0f} min" if d["stopped"] else f"{d['slack_hours']:.1f} h slack"
-            self._event("alert", f"🟡 {tid} DELAYED - {why}", "warning")
+            slack = d["slack_hours"]
+            if d["stopped"]:
+                why = f"stopped {d['stopped_minutes']:.0f} min"
+            elif slack < 0:
+                why = f"running {-slack:.1f} h behind (within grace period)"
+            else:
+                why = f"only {slack:.1f} h of slack left"
+            self._event("alert", f"{tid} delayed: {why}", "warning")
         elif status == "resolved":
-            self._event("system", f"✅ {tid} RESOLVED - relief dispatched", "info")
+            self._event("system", f"{tid} resolved: relief truck dispatched", "info")
         elif status == "on-time":
-            self._event("system", f"🟢 {tid} back on schedule", "info")
+            self._event("system", f"{tid} back on schedule", "info")
 
     def _event(self, etype: str, message: str, severity: str):
         self.events.appendleft({"id": f"evt-{time.time_ns()}", "timestamp": _iso(time.time()),
@@ -195,6 +226,12 @@ class RealtimeHub:
             "contractId": row["contract_id"], "eta": _iso(d["ts"] + d["eta_hours"] * 3600),
             "etaHours": d["eta_hours"], "slackHours": d["slack_hours"], "remainingKm": d["remaining_km"],
             "latenessHours": d["lateness_hours"], "exposure": d["exposure"], "incident": d["incident"],
+            "client": d.get("client", ""), "slaHours": d.get("sla_hours"), "penaltyPerHour": d.get("penalty_per_hour"),
+            "maxPenalty": d.get("max_penalty"), "graceMinutes": d.get("grace_minutes"),
+            "deadlineHoursLeft": d["deadline_hours_left"], "netSavings": d["net_savings"],
+            "confidence": d["confidence"], "best": d["best"],
+            # Full option list only where there is a choice to make (keeps snapshots small)
+            "options": d["options"] if len(d["options"]) > 1 else [],
             "recommendation": "CHECK_TRACKER" if lost else d["recommendation"],
             "summary": (f"No data from {d['truck_id']}'s tracker for "
                         f"{f'{silent_min:.0f} min' if silent_min >= 1 else f'{silent_min * 60:.0f} s'}; last known position shown. "
@@ -266,7 +303,7 @@ class RealtimeHub:
             cmd = {"truck_id": truck_id, "incident_id": d["incident_id"], "action": "classify", "ts": d["ts"],
                    "provider": "", "cost": 0.0, "net_savings": 0.0, "penalty_avoided": 0.0,
                    "extra_co2_kg": 0.0, "label": label}
-            self._event("system", f"🧑‍💼 Dispatcher classified {truck_id} stop as "
+            self._event("system", f"Dispatcher set {truck_id} cause of stop: "
                                   f"{label.replace('_', ' ') or 'unexplained'}", "info")
             self._dirty = True
         if self.on_command:
@@ -277,8 +314,8 @@ class RealtimeHub:
     def _handle_set_ai(self, msg: Dict) -> Dict:
         with self.lock:
             self.ai_enabled = bool(msg.get("enabled", True))
-            self._event("system", f"🧠 AI explanations {'enabled' if self.ai_enabled else 'disabled'} "
-                                  f"- decisions unchanged (deterministic engine)", "info")
+            self._event("system", f"AI explanations {'on' if self.ai_enabled else 'off'}: decisions unchanged "
+                                  f"(deterministic engine)", "info")
             self._dirty = True
         return {"type": "ai_toggled", "enabled": self.ai_enabled, "timestamp": _iso(time.time())}
 
@@ -291,11 +328,11 @@ class RealtimeHub:
             if action == "reset":
                 self._lost.clear()
                 self._last_seen.clear()
-                self._event("system", "🎬 Demo reset: all trucks back on route, scenario replaying", "info")
+                self._event("system", "Demo reset: all trucks back on route", "info")
             elif result:
-                self._event("system", f"🎬 Demo: breakdown triggered on {result}", "info")
+                self._event("system", f"Demo: breakdown on {result}", "info")
             else:
-                self._event("system", "🎬 Demo: no moving truck available - reset the demo", "warning")
+                self._event("system", "Demo: no moving truck available, reset the demo", "warning")
             self._dirty = True
         return {"type": "demo_ack", "action": action, "truckId": result, "timestamp": _iso(time.time())}
 
@@ -303,10 +340,10 @@ class RealtimeHub:
         """Notable events raised by the telematics platform (e.g. Traccar alarms, offline devices)."""
         etype, tid = ev.get("type", ""), ev.get("truck_id", "")
         text = {
-            "alarm": f"🛰 Traccar alarm on {tid}: {ev.get('detail') or 'unspecified'}",
-            "deviceOffline": f"🛰 Traccar: {tid} went offline",
-            "deviceUnknown": f"🛰 Traccar: {tid} status unknown (no data)",
-            "deviceOnline": f"🛰 Traccar: {tid} back online",
+            "alarm": f"Traccar alarm on {tid}: {ev.get('detail') or 'unspecified'}",
+            "deviceOffline": f"Traccar: {tid} went offline",
+            "deviceUnknown": f"Traccar: {tid} status unknown (no data)",
+            "deviceOnline": f"Traccar: {tid} back online",
         }.get(etype)
         if text:
             with self.lock:
@@ -321,12 +358,12 @@ class RealtimeHub:
                 silent = now - last > self.signal_lost_s
                 if silent and tid not in self._lost:
                     self._lost.add(tid)
-                    self._event("alert", f"📡 {tid} SIGNAL LOST - no tracker data for {now - last:.0f} s",
+                    self._event("alert", f"{tid} signal lost: no tracker data for {now - last:.0f} s",
                                 "critical")
                     self._dirty = True
                 elif not silent and tid in self._lost:
                     self._lost.discard(tid)
-                    self._event("system", f"📡 {tid} tracker back online", "info")
+                    self._event("system", f"{tid} tracker back online", "info")
                     self._dirty = True
 
     def _handle_command(self, msg: Dict) -> Dict:
@@ -419,7 +456,13 @@ class RealtimeHub:
         return None
 
     async def _serve(self):
-        async with websockets.serve(self._client, self.host, self.port, process_request=self._health):
+        # Only the dashboard's origin may connect from a browser (blocks cross-site WebSocket hijacking:
+        # another page in the same browser cannot drive execute/dismiss/classify/demo commands).
+        # None = no Origin header, i.e. non-browser clients such as the benchmark and tests.
+        allowed = [o.strip() for o in os.getenv("WS_ALLOWED_ORIGINS",
+                                                 "http://localhost:3000,http://127.0.0.1:3000").split(",") if o.strip()]
+        async with websockets.serve(self._client, self.host, self.port, process_request=self._health,
+                                    origins=allowed + [None]):
             print(f"✅ Realtime hub on ws://{self.host}:{self.port} (health: http://{self.host}:{self.port}/health)")
             await self._ticker()
 

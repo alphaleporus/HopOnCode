@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-// Self-hosted Geist (bundled font files): no Google Fonts fetch, so builds work offline
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+// Brand fonts (Archivo, IBM Plex Mono) are self-hosted via @fontsource in globals.css
 import "./globals.css";
 
 export const metadata: Metadata = {
     title: "FleetFusion - Real-time Delay Decision Engine",
     description: "Real-time financial intelligence for logistics operations",
     icons: {
-        icon: "/Favicon.png",
+        icon: [
+            {url: "/brand/logo/favicon.svg", type: "image/svg+xml"},
+            {url: "/brand/favicon/favicon-32.png", sizes: "32x32"},
+        ],
+        apple: "/brand/favicon/apple-touch-icon.png",
     },
 };
 
@@ -19,7 +21,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-        <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
+        <body className="antialiased">
             {children}
         </body>
         </html>

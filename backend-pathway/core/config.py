@@ -21,6 +21,7 @@ class DecisionConfig:
     min_savings_ratio: float = 0.05      # ...and at least this share of the do-nothing cost
     min_confidence: float = 0.6          # below this an otherwise good option is only CONSIDER
     co2_kg_per_km: float = 0.9           # heavy truck emission factor (diesel, laden)
+    min_critical_exposure: float = 1000.0  # below this, money at risk is "delayed", not "critical" (avoids flapping)
 
     @staticmethod
     def from_env() -> "DecisionConfig":
@@ -33,4 +34,5 @@ class DecisionConfig:
             min_savings_ratio=_f("FF_MIN_SAVINGS_RATIO", 0.05),
             min_confidence=_f("FF_MIN_CONFIDENCE", 0.6),
             co2_kg_per_km=_f("FF_CO2_KG_PER_KM", 0.9),
+            min_critical_exposure=_f("FF_MIN_CRITICAL_EXPOSURE", 1000.0),
         )

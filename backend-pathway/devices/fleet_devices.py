@@ -32,6 +32,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Dict, List, Optional
@@ -44,7 +45,15 @@ KMH_TO_KNOTS = 1 / 1.852
 
 
 class FastHTTPServer(ThreadingHTTPServer):
-    """ThreadingHTTPServer without the reverse-DNS lookup in server_bind (can hang for a long time on macOS)."""
+    """ThreadingHTTPServer tuned for bursty integrations.
+
+    - no reverse-DNS lookup in server_bind (can hang for a long time on macOS)
+    - a deep accept queue: the default of 5 drops connections when Traccar forwards a burst of
+      positions and events every second, which shows up as every truck going "signal lost"
+    """
+
+    request_queue_size = 1024
+    daemon_threads = True
 
     def server_bind(self):
         socketserver.TCPServer.server_bind(self)
@@ -57,7 +66,7 @@ INCIDENTS = {
     "traffic": {"weight": 0.30, "minutes": (15, 60), "ignition": 1},
     "checkpoint": {"weight": 0.15, "minutes": (20, 60), "ignition": 1},
     "accident": {"weight": 0.05, "minutes": (120, 360), "alarm": "accident", "ignition": 0},
-    "tracker_offline": {"weight": 0.05, "minutes": (15, 40), "silent": True},
+    "tracker_offline": {"weight": 0.05, "minutes": (60, 120), "silent": True},
 }
 
 
@@ -118,6 +127,7 @@ class DeviceFleet:
             saved = 0
         self.sim_now = max(int(time.time()), saved)
         self.lock = threading.Lock()
+        self.pool = ThreadPoolExecutor(max_workers=8, thread_name_prefix="report")
         lanes = {l["lane_id"]: l for l in json.load(open(os.getenv("LANES_FILE", os.path.join(HERE, "data/fleet/lanes.json"))))}
         self.devices: Dict[str, Device] = {}
         for spec in json.load(open(os.getenv("FLEET_FILE", os.path.join(HERE, "data/fleet/fleet.json")))):
@@ -216,12 +226,17 @@ class DeviceFleet:
                 lon, lat = d.position()
                 params.update(lat=round(lat, 6), lon=round(lon, 6), bearing=round(d.bearing()))
                 reports.append(params)
-        for params in reports:
-            try:
-                urllib.request.urlopen(f"{self.traccar_url}/?{urllib.parse.urlencode(params)}", timeout=3).read()
-            except Exception as e:
-                print(f"⚠️  Traccar report failed for {params['id']}: {e}")
-                break
+        # Send in parallel; a slow or failed report never holds up the rest of the fleet
+        failed = list(self.pool.map(self._send, reports))
+        if any(failed):
+            print(f"⚠️  {sum(failed)}/{len(reports)} Traccar reports failed this tick (will report again next tick)")
+
+    def _send(self, params: Dict) -> bool:
+        try:
+            urllib.request.urlopen(f"{self.traccar_url}/?{urllib.parse.urlencode(params)}", timeout=2).read()
+            return False
+        except Exception:
+            return True
 
     def new_trip(self, d: Device):
         """Delivered: next job runs the lane in reverse."""

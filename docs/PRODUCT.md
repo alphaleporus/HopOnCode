@@ -214,7 +214,8 @@
 | Feature | Status | Priority |
 |---|---|---|
 | Open-redirect fix, dev-only auth secret, demo login gated in production | ✅ | — |
-| **Authentication on the WebSocket and ingest** (API keys per device/org, JWT for operators) | ⬜ | **P0** before any external deployment |
+| WebSocket origin allow-list (`WS_ALLOWED_ORIGINS`): blocks cross-site WebSocket hijacking from other pages in the browser | ✅ | — |
+| **Authentication on the WebSocket and ingest** (signed session token on the WebSocket handshake for operator commands, API keys per device/org for ingest) | ⬜ | **P0** before any external deployment |
 | Roles: dispatcher, manager, admin; approval policy (auto-execute below ₹X, manager approval above) | ⬜ | P1 |
 | Real user store with hashed passwords | ⬜ | P1 |
 | TLS (WSS/HTTPS) via Caddy | ⬜ | P1 |

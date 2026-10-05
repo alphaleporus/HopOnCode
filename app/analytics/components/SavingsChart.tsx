@@ -14,11 +14,11 @@ export default function SavingsChart({decisions}: { decisions: DecisionRecord[] 
     }));
 
     return (
-        <div className="glass-card rounded-2xl p-6 border border-white/10">
-            <h3 className="text-xl font-bold text-white mb-1">Savings over time</h3>
-            <p className="text-sm text-slate-400 mb-4">Total saved by executed decisions (this session)</p>
+        <div className="bg-surface border border-line rounded-lg p-5">
+            <h3 className="text-sm font-semibold mb-1">Savings over time</h3>
+            <p className="text-sm text-muted mb-4">Total saved by executed decisions (this session)</p>
             {data.length === 0 ? (
-                <div className="h-[300px] flex items-center justify-center text-center text-slate-500 text-sm px-6">
+                <div className="h-[300px] flex items-center justify-center text-center text-muted text-sm px-6">
                     No decisions yet. Execute a recommendation on the dashboard and it will appear here.
                 </div>
             ) : (
@@ -26,18 +26,18 @@ export default function SavingsChart({decisions}: { decisions: DecisionRecord[] 
                     <AreaChart data={data}>
                         <defs>
                             <linearGradient id="saved" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
-                                <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                                <stop offset="5%" stopColor="#1F9461" stopOpacity={0.4}/>
+                                <stop offset="95%" stopColor="#1F9461" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)"/>
-                        <XAxis dataKey="label" stroke="#94a3b8" fontSize={12}/>
-                        <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={v => formatINRCompact(v)} width={80}/>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E4E3DC"/>
+                        <XAxis dataKey="label" stroke="#5A5F6B" fontSize={12}/>
+                        <YAxis stroke="#5A5F6B" fontSize={12} tickFormatter={v => formatINRCompact(v)} width={80}/>
                         <Tooltip
-                            contentStyle={{backgroundColor: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, color: '#fff'}}
+                            contentStyle={{backgroundColor: '#FFFFFF', border: '1px solid #E4E3DC', borderRadius: 6, color: '#14171F'}}
                             formatter={(v: number) => [formatINR(v), 'Total saved']}
                         />
-                        <Area type="monotone" dataKey="saved" stroke="#10b981" strokeWidth={2} fill="url(#saved)"/>
+                        <Area type="monotone" dataKey="saved" stroke="#1F9461" strokeWidth={2} fill="url(#saved)"/>
                     </AreaChart>
                 </ResponsiveContainer>
             )}

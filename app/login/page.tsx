@@ -65,7 +65,7 @@ export default function LoginPage() {
                     <Link href="/" className="inline-flex items-center gap-2 mb-2">
                         <div className="relative w-56 h-14">
                             <Image 
-                                src="/Logo.png" 
+                                src="/brand/logo/logo-primary.svg" 
                                 alt="FleetFusion Logo" 
                                 width={224} 
                                 height={56}
@@ -76,10 +76,10 @@ export default function LoginPage() {
                 </motion.div>
 
                 {/* Login Card */}
-                <div className="glass-card rounded-3xl p-8 border border-white/10">
+                <div className="glass-card rounded-3xl p-8 border border-line">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-                        <p className="text-slate-400">Sign in to access your dashboard</p>
+                        <h1 className="text-3xl font-bold text-ink mb-2">Welcome Back</h1>
+                        <p className="text-muted">Sign in to access your dashboard</p>
                     </div>
 
                     {error && (
@@ -88,43 +88,43 @@ export default function LoginPage() {
                             animate={{opacity: 1, y: 0}}
                             className="mb-6 p-4 rounded-lg bg-red-500/10 border border-red-500/20 flex items-start gap-3"
                         >
-                            <AlertCircle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0"/>
-                            <p className="text-sm text-red-400">{error}</p>
+                            <AlertCircle className="w-5 h-5 text-alert mt-0.5 flex-shrink-0"/>
+                            <p className="text-sm text-alert">{error}</p>
                         </motion.div>
                     )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="email" className="block text-sm font-medium text-ink-2 mb-2">
                                 Email Address
                             </label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"/>
+                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted"/>
                                 <input
                                     id="email"
                                     type="email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
-                                    className="w-full pl-11 pr-4 py-3 rounded-lg bg-slate-800/50 border border-white/10 text-white placeholder-slate-500 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
+                                    className="w-full pl-11 pr-4 py-3 rounded-lg bg-paper border border-line text-ink placeholder-slate-500 focus:border-line focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
                                     placeholder="you@example.com"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+                            <label htmlFor="password" className="block text-sm font-medium text-ink-2 mb-2">
                                 Password
                             </label>
                             <div className="relative">
-                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"/>
+                                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted"/>
                                 <input
                                     id="password"
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
-                                    className="w-full pl-11 pr-4 py-3 rounded-lg bg-slate-800/50 border border-white/10 text-white placeholder-slate-500 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
+                                    className="w-full pl-11 pr-4 py-3 rounded-lg bg-paper border border-line text-ink placeholder-slate-500 focus:border-line focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
                                     placeholder="••••••••"
                                 />
                             </div>
@@ -147,23 +147,23 @@ export default function LoginPage() {
                     </form>
 
                     {/* Demo Credentials */}
-                    <div className="mt-6 p-4 rounded-lg bg-teal-500/5 border border-teal-500/20">
-                        <p className="text-sm font-semibold text-teal-400 mb-2">Demo Credentials:</p>
-                        <div className="space-y-1 text-xs text-slate-400">
-                            <p>Email: <span className="text-white mono-numbers">demo@fleetfusion.com</span></p>
-                            <p>Password: <span className="text-white mono-numbers">demo123</span></p>
+                    <div className="mt-6 p-4 rounded-lg bg-cobalt/5 border border-line">
+                        <p className="text-sm font-semibold text-cobalt mb-2">Demo Credentials:</p>
+                        <div className="space-y-1 text-xs text-muted">
+                            <p>Email: <span className="text-ink mono-numbers">demo@fleetfusion.com</span></p>
+                            <p>Password: <span className="text-ink mono-numbers">demo123</span></p>
                         </div>
                     </div>
 
                     <div className="mt-6 text-center">
-                        <Link href="/" className="text-sm text-slate-400 hover:text-teal-400 transition-colors">
+                        <Link href="/" className="text-sm text-muted hover:text-cobalt transition-colors">
                             ← Back to Home
                         </Link>
                     </div>
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-sm text-slate-500 mt-8">
+                <p className="text-center text-sm text-muted mt-8">
                     &copy; 2026 FleetFusion. All rights reserved.
                 </p>
             </motion.div>

@@ -20,6 +20,20 @@ export interface Truck {
   recommendation?: string;
   summary?: string;
   exposure?: number;
+  etaHours?: number;
+  slackHours?: number;
+  remainingKm?: number;
+  latenessHours?: number;
+  deadlineHoursLeft?: number;
+  netSavings?: number;
+  confidence?: number;
+  best?: string;
+  options?: DecisionOption[];
+  client?: string;
+  slaHours?: number;
+  penaltyPerHour?: number;
+  maxPenalty?: number;
+  graceMinutes?: number;
 }
 
 export interface AgentEvent {

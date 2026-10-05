@@ -40,17 +40,17 @@ export default function UserMenu() {
             <div className="relative">
                 <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-paper transition-colors"
                 >
                     <div
-                        className="w-8 h-8 rounded-full bg-teal-500/20 border border-teal-500/30 flex items-center justify-center">
-                        <User className="w-4 h-4 text-teal-400"/>
+                        className="w-8 h-8 rounded-full bg-mist border border-line flex items-center justify-center">
+                        <User className="w-4 h-4 text-cobalt"/>
                     </div>
                     <div className="hidden sm:block text-left">
-                        <div className="text-sm font-semibold text-white">{user.name}</div>
-                        <div className="text-xs text-slate-400">{user.email}</div>
+                        <div className="text-sm font-semibold text-ink">{user.name}</div>
+                        <div className="text-xs text-muted">{user.email}</div>
                     </div>
-                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`}/>
+                    <ChevronDown className={`w-4 h-4 text-muted transition-transform ${isOpen ? 'rotate-180' : ''}`}/>
                 </button>
 
                 <AnimatePresence>
@@ -67,16 +67,16 @@ export default function UserMenu() {
                                 initial={{opacity: 0, y: -10}}
                                 animate={{opacity: 1, y: 0}}
                                 exit={{opacity: 0, y: -10}}
-                                className="absolute right-0 mt-2 w-56 glass-card rounded-xl border border-white/10 shadow-xl z-50 overflow-hidden"
+                                className="absolute right-0 mt-2 w-56 glass-card rounded-lg border border-line shadow-xl z-50 overflow-hidden"
                             >
-                                <div className="p-3 border-b border-white/10">
-                                    <div className="text-sm font-semibold text-white">{user.name}</div>
-                                    <div className="text-xs text-slate-400">{user.email}</div>
+                                <div className="p-3 border-b border-line">
+                                    <div className="text-sm font-semibold text-ink">{user.name}</div>
+                                    <div className="text-xs text-muted">{user.email}</div>
                                 </div>
 
                                 <div className="p-2">
                                     <button
-                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white transition-colors"
+                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-paper text-ink-2 hover:text-ink transition-colors"
                                         onClick={handleOpenSettings}
                                     >
                                         <Settings className="w-4 h-4"/>
@@ -85,7 +85,7 @@ export default function UserMenu() {
 
                                     <button
                                         onClick={handleSignOut}
-                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-red-500/10 text-slate-300 hover:text-red-400 transition-colors"
+                                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-alert/10 text-ink-2 hover:text-alert transition-colors"
                                     >
                                         <LogOut className="w-4 h-4"/>
                                         <span className="text-sm">Sign Out</span>
@@ -106,7 +106,7 @@ export default function UserMenu() {
                             initial={{opacity: 0}}
                             animate={{opacity: 1}}
                             exit={{opacity: 0}}
-                            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+                            className="absolute inset-0 bg-ink/40"
                             onClick={() => setShowSettings(false)}
                         />
 
@@ -115,21 +115,21 @@ export default function UserMenu() {
                             initial={{opacity: 0, scale: 0.95}}
                             animate={{opacity: 1, scale: 1}}
                             exit={{opacity: 0, scale: 0.95}}
-                            className="relative w-full max-w-2xl glass-card rounded-2xl border border-white/10 shadow-2xl p-6 z-10"
+                            className="relative w-full max-w-2xl glass-card rounded-lg border border-line shadow-lg p-6 z-10"
                         >
                             {/* Header */}
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-lg bg-teal-500/20 border border-teal-500/30">
-                                        <Settings className="w-5 h-5 text-teal-400"/>
+                                    <div className="p-2 rounded-lg bg-mist border border-line">
+                                        <Settings className="w-5 h-5 text-cobalt"/>
                                     </div>
-                                    <h2 className="text-2xl font-bold text-white">Settings</h2>
+                                    <h2 className="text-2xl font-bold text-ink">Settings</h2>
                                 </div>
                                 <button
                                     onClick={() => setShowSettings(false)}
-                                    className="p-2 hover:bg-white/5 rounded-lg transition-colors"
+                                    className="p-2 hover:bg-paper rounded-lg transition-colors"
                                 >
-                                    <X className="w-5 h-5 text-slate-400"/>
+                                    <X className="w-5 h-5 text-muted"/>
                                 </button>
                             </div>
 
@@ -137,24 +137,24 @@ export default function UserMenu() {
                             <div className="space-y-6">
                                 {/* Account Section */}
                                 <div>
-                                    <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Account Information</h3>
-                                    <div className="glass-card rounded-xl p-4 space-y-3">
+                                    <h3 className="text-sm font-semibold text-muted uppercase mb-3">Account Information</h3>
+                                    <div className="glass-card rounded-lg p-4 space-y-3">
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <div className="text-sm text-slate-400">Name</div>
-                                                <div className="text-white font-medium">{user.name}</div>
+                                                <div className="text-sm text-muted">Name</div>
+                                                <div className="text-ink font-medium">{user.name}</div>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <div className="text-sm text-slate-400">Email</div>
-                                                <div className="text-white font-medium">{user.email}</div>
+                                                <div className="text-sm text-muted">Email</div>
+                                                <div className="text-ink font-medium">{user.email}</div>
                                             </div>
                                         </div>
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <div className="text-sm text-slate-400">Role</div>
-                                                <div className="text-teal-400 font-medium">{user.role}</div>
+                                                <div className="text-sm text-muted">Role</div>
+                                                <div className="text-cobalt font-medium">{user.role}</div>
                                             </div>
                                         </div>
                                     </div>
@@ -162,20 +162,20 @@ export default function UserMenu() {
 
                                 {/* Preferences Section */}
                                 <div>
-                                    <h3 className="text-sm font-semibold text-slate-400 uppercase mb-3">Preferences</h3>
+                                    <h3 className="text-sm font-semibold text-muted uppercase mb-3">Preferences</h3>
                                     <div className="space-y-3">
                                         {/* Notifications Toggle */}
-                                        <div className="glass-card rounded-xl p-4 flex items-center justify-between">
+                                        <div className="glass-card rounded-lg p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <Bell className="w-5 h-5 text-teal-400"/>
+                                                <Bell className="w-5 h-5 text-cobalt"/>
                                                 <div>
-                                                    <div className="text-white font-medium">Notifications</div>
-                                                    <div className="text-xs text-slate-400">Receive alerts and updates</div>
+                                                    <div className="text-ink font-medium">Notifications</div>
+                                                    <div className="text-xs text-muted">Receive alerts and updates</div>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => setSettings({...settings, notifications: !settings.notifications})}
-                                                className={`relative w-11 h-6 rounded-full transition-colors ${settings.notifications ? 'bg-teal-500' : 'bg-slate-700'}`}
+                                                className={`relative w-11 h-6 rounded-full transition-colors ${settings.notifications ? 'bg-cobalt' : 'bg-slate-700'}`}
                                             >
                                                 <motion.div
                                                     animate={{x: settings.notifications ? 20 : 0}}
@@ -186,17 +186,17 @@ export default function UserMenu() {
                                         </div>
 
                                         {/* Dark Mode Toggle */}
-                                        <div className="glass-card rounded-xl p-4 flex items-center justify-between">
+                                        <div className="glass-card rounded-lg p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <Moon className="w-5 h-5 text-teal-400"/>
+                                                <Moon className="w-5 h-5 text-cobalt"/>
                                                 <div>
-                                                    <div className="text-white font-medium">Dark Mode</div>
-                                                    <div className="text-xs text-slate-400">Use dark theme</div>
+                                                    <div className="text-ink font-medium">Dark Mode</div>
+                                                    <div className="text-xs text-muted">Use dark theme</div>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => setSettings({...settings, darkMode: !settings.darkMode})}
-                                                className={`relative w-11 h-6 rounded-full transition-colors ${settings.darkMode ? 'bg-teal-500' : 'bg-slate-700'}`}
+                                                className={`relative w-11 h-6 rounded-full transition-colors ${settings.darkMode ? 'bg-cobalt' : 'bg-slate-700'}`}
                                             >
                                                 <motion.div
                                                     animate={{x: settings.darkMode ? 20 : 0}}
@@ -207,17 +207,17 @@ export default function UserMenu() {
                                         </div>
 
                                         {/* Auto Save Toggle */}
-                                        <div className="glass-card rounded-xl p-4 flex items-center justify-between">
+                                        <div className="glass-card rounded-lg p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <Shield className="w-5 h-5 text-teal-400"/>
+                                                <Shield className="w-5 h-5 text-cobalt"/>
                                                 <div>
-                                                    <div className="text-white font-medium">Auto Save</div>
-                                                    <div className="text-xs text-slate-400">Automatically save changes</div>
+                                                    <div className="text-ink font-medium">Auto Save</div>
+                                                    <div className="text-xs text-muted">Automatically save changes</div>
                                                 </div>
                                             </div>
                                             <button
                                                 onClick={() => setSettings({...settings, autoSave: !settings.autoSave})}
-                                                className={`relative w-11 h-6 rounded-full transition-colors ${settings.autoSave ? 'bg-teal-500' : 'bg-slate-700'}`}
+                                                className={`relative w-11 h-6 rounded-full transition-colors ${settings.autoSave ? 'bg-cobalt' : 'bg-slate-700'}`}
                                             >
                                                 <motion.div
                                                     animate={{x: settings.autoSave ? 20 : 0}}
@@ -228,18 +228,18 @@ export default function UserMenu() {
                                         </div>
 
                                         {/* Language Selection */}
-                                        <div className="glass-card rounded-xl p-4 flex items-center justify-between">
+                                        <div className="glass-card rounded-lg p-4 flex items-center justify-between">
                                             <div className="flex items-center gap-3">
-                                                <Globe className="w-5 h-5 text-teal-400"/>
+                                                <Globe className="w-5 h-5 text-cobalt"/>
                                                 <div>
-                                                    <div className="text-white font-medium">Language</div>
-                                                    <div className="text-xs text-slate-400">Select your language</div>
+                                                    <div className="text-ink font-medium">Language</div>
+                                                    <div className="text-xs text-muted">Select your language</div>
                                                 </div>
                                             </div>
                                             <select
                                                 value={settings.language}
                                                 onChange={(e) => setSettings({...settings, language: e.target.value})}
-                                                className="bg-slate-800 text-white px-3 py-2 rounded-lg border border-white/10 focus:border-teal-500/50 focus:ring-2 focus:ring-teal-500/20 outline-none"
+                                                className="bg-paper text-ink px-3 py-2 rounded-lg border border-line focus:border-line focus:ring-2 focus:ring-teal-500/20 outline-none"
                                             >
                                                 <option>English</option>
                                                 <option>Spanish</option>
@@ -251,10 +251,10 @@ export default function UserMenu() {
                                 </div>
 
                                 {/* Footer */}
-                                <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
+                                <div className="flex items-center justify-end gap-3 pt-4 border-t border-line">
                                     <button
                                         onClick={() => setShowSettings(false)}
-                                        className="px-4 py-2 rounded-lg hover:bg-white/5 text-slate-300 hover:text-white transition-colors"
+                                        className="px-4 py-2 rounded-lg hover:bg-paper text-ink-2 hover:text-ink transition-colors"
                                     >
                                         Cancel
                                     </button>
@@ -262,7 +262,7 @@ export default function UserMenu() {
                                         onClick={() => {
                                             setShowSettings(false);
                                         }}
-                                        className="px-4 py-2 rounded-lg bg-teal-500 hover:bg-teal-600 text-white font-semibold transition-colors"
+                                        className="px-4 py-2 rounded-lg bg-cobalt hover:bg-teal-600 text-ink font-semibold transition-colors"
                                     >
                                         Save Changes
                                     </button>

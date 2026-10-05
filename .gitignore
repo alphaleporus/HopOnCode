@@ -106,3 +106,4 @@ temp/
 # Raw third-party datasets (contain personal data); commit only derived, anonymised files
 backend-pathway/data/external/
 backend-pathway/output/
+.demo-launcher.pid

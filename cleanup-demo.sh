@@ -37,6 +37,16 @@ if pgrep -f "python main.py" > /dev/null 2>&1; then
     pkill -f "python main.py" || pkill -9 -f "python main.py" || true
 fi
 
+# Stop the launcher's watchdog first, so it doesn't react to the services going away
+if [ -f .demo-launcher.pid ]; then
+    OLD=$(cat .demo-launcher.pid)
+    if [ -n "$OLD" ] && ps -p "$OLD" -o command= 2>/dev/null | grep -q "start-demo.sh"; then
+        kill "$OLD" 2>/dev/null || true
+        sleep 1
+    fi
+    rm -f .demo-launcher.pid
+fi
+
 if pgrep -f "devices/fleet_devices.py" > /dev/null 2>&1; then
     echo -e "  ${GREEN}✓${NC} Stopping simulated GPS trackers..."
     pkill -f "devices/fleet_devices.py" || true

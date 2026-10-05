@@ -20,6 +20,19 @@ NC='\033[0m' # No Color
 PIDFILE=".demo-pids"
 mkdir -p logs
 
+# Stop an earlier launcher still watching its services: its watchdog would otherwise treat
+# our restart as a crash and kill the new processes listed in the shared PID file.
+LAUNCHER_PIDFILE=".demo-launcher.pid"
+if [ -f "$LAUNCHER_PIDFILE" ]; then
+    OLD=$(cat "$LAUNCHER_PIDFILE")
+    if [ -n "$OLD" ] && [ "$OLD" != "$$" ] && ps -p "$OLD" -o command= 2>/dev/null | grep -q "start-demo.sh"; then
+        kill "$OLD" 2>/dev/null || true
+        sleep 1  # let it finish its own shutdown before we write new PIDs
+    fi
+fi
+echo $$ > "$LAUNCHER_PIDFILE"
+rm -f "$PIDFILE"
+
 ################################################################################
 # Helper Functions
 ################################################################################
@@ -237,8 +250,10 @@ BACKEND_PID=$!
 echo $BACKEND_PID >> "../$PIDFILE"
 if [ "$FEED" = "traccar" ]; then
     sleep 5
-    # Simulated GPS trackers on real lanes, reporting to Traccar like hardware would
-    python devices/fleet_devices.py > ../logs/devices.log 2>&1 &
+    # Simulated GPS trackers on real lanes, reporting to Traccar like hardware would.
+    # Fresh demo clock each start (backend restarts too, so both agree on time).
+    rm -f output/.device_clock
+    python -u devices/fleet_devices.py > ../logs/devices.log 2>&1 &
     DEVICES_PID=$!
     echo $DEVICES_PID >> "../$PIDFILE"
 fi

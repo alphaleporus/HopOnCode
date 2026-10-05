@@ -132,9 +132,9 @@ def assess(snapshot: TruckSnapshot, contract: Contract, cfg: Optional[DecisionCo
     slack_h = deadline_left_h - wait.arrival_hours
 
     # Status: financial exposure first, then operational risk
-    if wait.expected_cost > 0:
+    if wait.expected_cost >= cfg.min_critical_exposure:
         status = "critical"
-    elif stopped or s.speed_kmh < cfg.slow_speed_kmh or slack_h < cfg.at_risk_slack_hours:
+    elif wait.expected_cost > 0 or stopped or s.speed_kmh < cfg.slow_speed_kmh or slack_h < cfg.at_risk_slack_hours:
         status = "delayed"
     else:
         status = "on-time"
@@ -169,6 +169,11 @@ def assess(snapshot: TruckSnapshot, contract: Contract, cfg: Optional[DecisionCo
         "sla_penalty": _r(wait.sla_penalty),
         "spoilage_loss": _r(wait.spoilage_loss),
         "currency": contract.currency,
+        "client": contract.client,
+        "sla_hours": contract.sla_hours,
+        "penalty_per_hour": contract.penalty_per_hour,
+        "max_penalty": contract.max_penalty,
+        "grace_minutes": contract.grace_minutes,
         "options": [{k: (_r(v) if isinstance(v, float) else v) for k, v in asdict(o).items()} for o in options],
         "best": best.label,
         "best_provider": best.provider,

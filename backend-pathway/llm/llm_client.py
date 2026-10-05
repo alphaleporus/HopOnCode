@@ -36,15 +36,20 @@ class LLMClient:
         self.enabled = os.getenv('LLM_ENABLED', 'true').lower() != 'false'
 
     def is_available(self) -> bool:
-        """Check the server is reachable (GET /models)."""
+        """Check the server is reachable AND the configured model is installed (GET /models)."""
         if not self.enabled:
             return False
         try:
             req = urllib.request.Request(f"{self.base_url}/models", headers=self._headers())
             with urllib.request.urlopen(req, timeout=3) as resp:
-                return resp.status == 200
-        except (urllib.error.URLError, OSError):
+                models = [m.get("id", "") for m in (json.loads(resp.read()).get("data") or [])]
+        except (urllib.error.URLError, OSError, ValueError):
             return False
+        if self.model in models or f"{self.model}:latest" in models:
+            return True
+        print(f"⚠️  LLM server is up but model '{self.model}' is not installed "
+              f"(available: {', '.join(models) or 'none'}). Run: ollama pull {self.model}")
+        return False
 
     def chat(
             self,

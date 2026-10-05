@@ -375,6 +375,13 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         });
     }, []);
 
+    // Approve the recommended fix for any truck (from the truck detail panel)
+    const executeDecision = useCallback((truckId: string, incidentId?: string) => {
+        dismissedArbitrageSet.add(incidentId || truckId);
+        sendMessage({type: 'execute_arbitrage', truckId});
+        setState(prev => prev.arbitrageOpportunity?.truckId === truckId ? {...prev, arbitrageOpportunity: null} : prev);
+    }, [sendMessage]);
+
     // Dispatcher (office staff) sets the incident type for a stopped truck
     const classifyIncident = useCallback((truckId: string, incident: string) => {
         sendMessage({type: 'classify_incident', truckId, incident});
@@ -424,6 +431,7 @@ export function useWebSocket(url: string = process.env.NEXT_PUBLIC_WS_URL || 'ws
         impact: state.impact,
         requestImpact,
         classifyIncident,
+        executeDecision,
         setAiEnabled,
         demoControl,
         connected: state.connected,

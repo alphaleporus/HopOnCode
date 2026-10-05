@@ -13,6 +13,8 @@
 
     <!-- Demo fleet devices register themselves on first report -->
     <entry key='database.registerUnknown'>true</entry>
+    <!-- New trackers join the demo group so they show up in the admin's list -->
+    <entry key='database.registerUnknown.defaultGroupId'>1</entry>
     <!-- Default pattern rejects hyphens; allow fleet IDs like TRK-402 -->
     <entry key='database.registerUnknown.regex'>[\w-]{2,32}</entry>
 
@@ -21,6 +23,11 @@
     <entry key='forward.url'>http://host.docker.internal:8091/integrations/traccar/positions</entry>
     <entry key='event.forward.type'>json</entry>
     <entry key='event.forward.url'>http://host.docker.internal:8091/integrations/traccar/events</entry>
+
+    <!-- Demo only: simulated trackers run a 30x clock, so their timestamps run ahead of real time.
+         Traccar drops "future" positions by default; widen the limit (seconds) for the demo.
+         Remove this for real devices. -->
+    <entry key='filter.future'>315360000</entry>
 
     <!-- A device silent for this long is marked unknown (demo value; production ~600) -->
     <entry key='status.timeout'>60</entry>

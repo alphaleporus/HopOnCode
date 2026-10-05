@@ -37,32 +37,32 @@ export default function ImpactPanel({connected, impact, requestImpact}: Props) {
     const slider = (key: keyof ImpactAssumptions, label: string, min: number, max: number, step: number, unit: string) => (
         <label className="block">
             <div className="flex justify-between text-sm mb-1">
-                <span className="text-slate-300">{label}</span>
-                <span className="text-white mono-numbers">{a[key]}{unit}</span>
+                <span className="text-ink-2">{label}</span>
+                <span className="text-ink mono-numbers">{a[key]}{unit}</span>
             </div>
             <input type="range" min={min} max={max} step={step} value={a[key]}
                    onChange={e => setA(prev => ({...prev, [key]: Number(e.target.value)}))}
-                   className="w-full accent-teal-500"/>
+                   className="w-full accent-[#2F4FE0]"/>
         </label>
     );
 
     return (
-        <div className="glass-card rounded-2xl p-6 border border-white/10">
+        <div className="bg-surface border border-line rounded-lg p-5">
             <div className="flex items-start justify-between gap-6 mb-6">
                 <div>
-                    <h3 className="text-xl font-bold text-white mb-1">Impact: with vs without FleetFusion</h3>
-                    <p className="text-sm text-slate-400 max-w-3xl">
+                    <h3 className="text-sm font-semibold mb-1">Impact: with vs without FleetFusion</h3>
+                    <p className="text-sm text-muted max-w-3xl">
                         The same {impact ? impact.assumptions.samples?.toLocaleString('en-IN') : '2,000'} incidents on 16 real lanes,
-                        handled two ways. <b className="text-slate-300">Today:</b> the stop is noticed late, carriers are phoned,
-                        and the cheapest quote is booked for serious stops. <b className="text-slate-300">FleetFusion:</b> the
+                        handled two ways. <b className="text-ink-2">Today:</b> the stop is noticed late, carriers are phoned,
+                        and the cheapest quote is booked for serious stops. <b className="text-ink-2">FleetFusion:</b> the
                         tracker signal is seen in minutes and the lowest expected-cost option is chosen.
                     </p>
                 </div>
                 {m && (
                     <div className="text-right shrink-0">
-                        <div className="text-xs text-slate-400 uppercase">Saving per month</div>
-                        <div className="text-3xl font-bold text-green-400 mono-numbers">{formatINRCompact(m.saving)}</div>
-                        <div className="text-xs text-slate-400">{formatINRCompact(impact!.yearly_saving)} per year</div>
+                        <div className="text-xs text-muted uppercase">Saving per month</div>
+                        <div className="text-3xl font-semibold text-clear mono-numbers">{formatINRCompact(m.saving)}</div>
+                        <div className="text-xs text-muted">{formatINRCompact(impact!.yearly_saving)} per year</div>
                     </div>
                 )}
             </div>
@@ -72,7 +72,7 @@ export default function ImpactPanel({connected, impact, requestImpact}: Props) {
                     {slider('trucks', 'Fleet size', 10, 1000, 10, ' trucks')}
                     {slider('incidents_per_100_trips', 'Disruptive incidents', 1, 20, 1, ' per 100 trips')}
                     {slider('discovery_delay_min', 'Today, a stop is noticed after', 15, 180, 15, ' min')}
-                    <p className="text-xs text-slate-500 leading-relaxed">
+                    <p className="text-xs text-muted leading-relaxed">
                         Assumptions: {a.trucks} trucks × 300 km/day × 26 days on the real lanes (avg {impact?.avg_lane_km ?? '—'} km).
                         Incident rate is an assumption (no public data); try the range. Lanes and the 63% late baseline come from
                         an open dataset of 6,880 real Indian truck trips. Penalty rates are illustrative contract terms.
@@ -81,19 +81,19 @@ export default function ImpactPanel({connected, impact, requestImpact}: Props) {
 
                 <div className="lg:col-span-2">
                     {!pi ? (
-                        <div className="h-[260px] flex items-center justify-center text-slate-500 text-sm">
+                        <div className="h-[260px] flex items-center justify-center text-muted text-sm">
                             {connected ? 'Calculating…' : 'Backend offline'}
                         </div>
                     ) : (
                         <>
                             <ResponsiveContainer width="100%" height={220}>
                                 <BarChart data={chart} barGap={6}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)"/>
-                                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={12}/>
-                                    <YAxis stroke="#94a3b8" fontSize={12} tickFormatter={v => formatINRCompact(v)} width={70}/>
-                                    <Tooltip contentStyle={{backgroundColor: 'rgba(15,23,42,0.95)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 8, color: '#fff'}}
+                                    <CartesianGrid strokeDasharray="3 3" stroke="#E4E3DC"/>
+                                    <XAxis dataKey="name" stroke="#5A5F6B" fontSize={12}/>
+                                    <YAxis stroke="#5A5F6B" fontSize={12} tickFormatter={v => formatINRCompact(v)} width={70}/>
+                                    <Tooltip contentStyle={{backgroundColor: '#FFFFFF', border: '1px solid #E4E3DC', borderRadius: 6, color: '#14171F'}}
                                              formatter={(v: number) => formatINR(v)}/>
-                                    <Legend wrapperStyle={{color: '#cbd5e1'}}/>
+                                    <Legend wrapperStyle={{color: '#3A3F4C', fontSize: 12}}/>
                                     <Bar dataKey="today" name="Today (per incident)" fill="#E8962B" radius={[4, 4, 0, 0]}/>
                                     <Bar dataKey="ff" name="With FleetFusion (per incident)" fill="#2F4FE0" radius={[4, 4, 0, 0]}/>
                                 </BarChart>
@@ -105,9 +105,9 @@ export default function ImpactPanel({connected, impact, requestImpact}: Props) {
                                     ['Relief trucks booked', `${Math.round(pi.today.relief_share * 100)}% → ${Math.round(pi.fleetfusion.relief_share * 100)}%`],
                                     ['Late deliveries avoided', `${m!.late_deliveries_avoided} / month`],
                                 ].map(([label, value]) => (
-                                    <div key={label} className="rounded-lg border border-white/10 p-3">
-                                        <div className="text-xs text-slate-400">{label}</div>
-                                        <div className="text-sm text-white mono-numbers mt-1">{value}</div>
+                                    <div key={label} className="rounded-lg border border-line p-3">
+                                        <div className="text-xs text-muted">{label}</div>
+                                        <div className="text-sm text-ink mono-numbers mt-1">{value}</div>
                                     </div>
                                 ))}
                             </div>
