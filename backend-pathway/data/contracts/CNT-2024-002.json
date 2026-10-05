@@ -1,0 +1,18 @@
+{
+  "contract_id": "CNT-2024-002",
+  "client": "PharmaCare Ltd",
+  "route": "Bangalore to Hyderabad",
+  "currency": "USD",
+  "cargo_value": 85000,
+  "cargo": {"type": "vaccines (2-8 C cold chain)", "max_transit_hours": 10, "spoilage_loss_fraction": 0.4},
+  "sla_hours": 9,
+  "grace_minutes": 30,
+  "penalty_per_hour": 400,
+  "max_penalty": 2000,
+  "force_majeure": ["natural_disaster", "government_closure"],
+  "terms": "TEMPERATURE-CONTROLLED LOGISTICS AGREEMENT\n\nClient: PharmaCare Ltd\n\nDELIVERY REQUIREMENTS:\n- Temperature range: 2-8 C maintained throughout\n- Delivery window: 9 hours from dispatch (30 minute grace)\n- Reefer autonomy: 10 hours; beyond that an estimated 40% of the consignment is written off\n\nPENALTY TERMS:\n- $400 per hour for delivery delays, maximum $2,000\n- Carrier liable for spoiled product\n\nSPECIAL CONDITIONS:\n- Relief vehicles must be reefer-equipped and pharma certified",
+  "spot_market_alternatives": [
+    {"provider": "ColdChain Express", "cost": 1200, "pickup_eta_minutes": 50, "reliability": 0.97, "speed_kmh": 65, "transfer_minutes": 40},
+    {"provider": "PolarLine Reefers", "cost": 1650, "pickup_eta_minutes": 25, "reliability": 0.95, "speed_kmh": 70, "transfer_minutes": 40}
+  ]
+}

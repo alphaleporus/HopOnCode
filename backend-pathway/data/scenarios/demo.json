@@ -1,0 +1,4 @@
+[
+  {"at_s": 5, "truck_id": "TRK-402", "action": "stop"},
+  {"at_s": 9, "truck_id": "TRK-402", "action": "report", "incident": "breakdown"}
+]

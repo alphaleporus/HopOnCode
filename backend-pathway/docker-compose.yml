@@ -1,0 +1,29 @@
+services:
+  pathway-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: fleetfusion-pathway
+    ports:
+      - "8765:8765"   # realtime hub (WebSocket + /health)
+      - "8090:8090"   # HTTP telemetry ingest
+    environment:
+      - PYTHONUNBUFFERED=1
+      # Local LLM (Ollama running on the host). Any OpenAI-compatible server works.
+      - LLM_BASE_URL=${LLM_BASE_URL:-http://host.docker.internal:11434/v1}
+      - LLM_MODEL=${LLM_MODEL:-llama3.2:3b}
+      - FLEET_SIZE=${FLEET_SIZE:-3}
+      - SIM_SPEEDUP=${SIM_SPEEDUP:-1}
+      - PATHWAY_THREADS=${PATHWAY_THREADS:-1}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./data:/app/data:ro
+      - ./output:/app/output
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8765/health', timeout=3)" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

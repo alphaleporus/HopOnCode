@@ -1,0 +1,19 @@
+{
+  "contract_id": "CNT-2024-001",
+  "client": "TechCorp India Pvt Ltd",
+  "route": "Pune to Mumbai",
+  "currency": "USD",
+  "cargo_value": 120000,
+  "cargo": {"type": "electronics (just-in-time line supply)"},
+  "sla_hours": 3,
+  "grace_minutes": 15,
+  "penalty_per_hour": 1200,
+  "max_penalty": 6000,
+  "force_majeure": ["weather", "natural_disaster", "government_closure"],
+  "terms": "LOGISTICS SERVICE AGREEMENT\n\nClient: TechCorp India Pvt Ltd\nService Provider: FleetFusion Logistics\n\nDELIVERY TERMS:\n- Origin: Pune, Maharashtra\n- Destination: Mumbai, Maharashtra\n- Delivery window: 3 hours from dispatch (15 minute grace)\n- Cargo: just-in-time components for an assembly line\n\nPENALTY CLAUSE:\n- $1,200 per hour of delay beyond the grace period (line stoppage cost)\n- Maximum penalty capped at $6,000\n\nFORCE MAJEURE:\nWeather, natural disasters, and government-mandated closures exempt from penalties.",
+  "spot_market_alternatives": [
+    {"provider": "QuickFreight India", "cost": 800, "pickup_eta_minutes": 45, "reliability": 0.95, "speed_kmh": 60},
+    {"provider": "RapidLogistics", "cost": 950, "pickup_eta_minutes": 30, "reliability": 0.98, "speed_kmh": 65},
+    {"provider": "ExpressHaul Services", "cost": 1100, "pickup_eta_minutes": 20, "reliability": 0.9, "speed_kmh": 65}
+  ]
+}
