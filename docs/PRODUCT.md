@@ -61,16 +61,17 @@
 
 | Data | How it's produced now | File | Realism |
 |---|---|---|---|
-| **Truck telemetry** | `FleetSimulator`: 3 hand-made demo trucks plus any number of generated trucks between 15 Indian cities. Lanes are limited to those a contract SLA can serve. One reading per truck per second, simulated clock with speed-up, constant cruise speed ±jitter, straight lines between 4 waypoints. | `connectors/fleet_simulator.py` | Low to medium |
-| **Incidents** | Scripted timeline (`data/scenarios/demo.json`: TRK-402 stops at T+5 s, engine fault P0217 at T+9 s; TRK-518's tracker goes silent at T+25 s and returns at T+90 s) plus random incidents (Poisson rate per truck-hour). Each type is emitted as a *machine signal*: fault code, crash flag, or an external label. | `fleet_simulator.py`, `data/scenarios/` | Medium |
-| **Truck registry** | Driver, contract, cargo value, route, emitted once by the simulator. | `fleet_simulator.py` | Low |
-| **Contracts** | 3 hand-written JSON files: SLA, grace period, ₹ penalty per hour, cap, cold-chain limits, force majeure, relief carrier offers. Hot-reloaded. | `data/contracts/*.json` | Medium; penalty rates are **illustrative** |
+| **Truck telemetry** | 16 simulated GPS trackers (`devices/fleet_devices.py`) drive **real lanes from an open dataset**, road-snapped with OSRM, at 30× time. They report to a real **Traccar** server over the OsmAnd protocol, exactly like hardware; Traccar forwards positions and events to FleetFusion. Fallback without Docker: built-in simulator (`FEED=internal`). | `devices/`, `connectors/traccar.py` | High (real platform, real roads; movement simulated) |
+| **Incidents** | Arise on their own (random rate per truck-hour) as **machine signals**: fault code, crash flag, ignition, tracker silence. On cue from the backend with `scripts/inject.py` (no UI button). | `devices/fleet_devices.py`, `scripts/inject.py` | Medium-high |
+| **Trips and lanes** | Kaggle "Delivery truck trips data" (CC BY-SA 3.0, 6,880 real Indian trips, 63% flagged delayed). 16 most frequent South-India lanes, validated against stated distance (8 rejected), anonymised. | `data/fleet/`, `scripts/build_fleet_dataset.py` | Real (derived) |
+| **Contracts** | One JSON per lane: SLA, grace period, ₹ penalty per hour, cap, cold-chain limits, force majeure, relief offers. Hot-reloaded. | `data/contracts/GEN-L*.json` | Medium; penalty rates are **illustrative** |
 | **Relief carrier quotes** | Static offers inside each contract, anchored to real ₹45–85/km full-truckload rates plus an emergency premium. | `data/contracts/*.json` | Medium |
 | **Incident durations** | Hand-set typical durations per type, plus a duration rule for unexplained stops. | `core/incidents.py` | Assumption |
 | **CO₂ factor** | Flat 0.9 kg/km for a laden diesel truck. | `core/config.py` | Assumption |
 | **Real-device path** | Already live: `POST /telemetry`, `POST /trucks` (port 8090). | `main.py`, `pipeline/graph.py` | Real |
 | **Analytics page** | Live from the backend: savings, penalties avoided, money at risk, fleet status, decision log, CSV/JSON export. | `app/analytics` | Real (this session) |
-| **Landing page figures** | Fixed figures from the demo scenario, labelled as an example. | `components/landing` | Example |
+| **Impact comparison** | Same incidents on the real lanes handled "today" vs "with FleetFusion"; assumptions shown and adjustable. | `core/impact.py`, Analytics | Simulated, assumptions labelled |
+| **Landing page figures** | Sourced market figures + the impact comparison result. | `app/page.tsx` | Sourced / simulated (labelled) |
 | **Public tracking page** | Still **mock data**. | `app/track` | Mock |
 
 **Sourced market figures used in copy and calibration**
@@ -88,7 +89,7 @@
 
 | Data | Real source | Access | Priority |
 |---|---|---|---|
-| Live location, speed, ignition | Telematics platform APIs/webhooks (Fleetx, LocoNav, Intangles), or a self-hosted **Traccar** server receiving raw AIS-140 device protocols | Partner API / open source | **P0** |
+| Live location, speed, ignition | Telematics platform APIs/webhooks (Fleetx, LocoNav, Intangles), or a self-hosted **Traccar** server receiving raw AIS-140 device protocols | Partner API / open source | ✅ Traccar live in demo; partners P2 |
 | Engine fault codes, crash events | CAN/OBD-capable telematics devices (premium tier) | Partner API | P1 |
 | Shipments, deadlines, cargo value | ERP/TMS (SAP TM / SAP Global Track & Trace, other TMSs); in India also **GST e-way bills** | Integration / ULIP | P0 (mock adapter), P1 (real) |
 | Contracts | Customer contracts → LLM-assisted PDF extraction into our JSON, human confirms | Customer upload | P1 |
@@ -105,9 +106,9 @@
 
 | Improvement | Why | Priority |
 |---|---|---|
-| Snap generated routes to real roads (OSRM) | Straight lines understate distance by 20–40% | P1 |
+| Snap generated routes to real roads (OSRM) | Straight lines understate distance by 20–40% | ✅ |
 | Speed profiles: highway vs city vs ghat, time of day | Constant speed hides realistic slow-downs | P1 |
-| Ignition on/off and stop-reason signals for the basic AIS-140 tier | Show that the engine works with basic trackers too | P0 |
+| Ignition on/off and stop-reason signals for the basic AIS-140 tier | Show that the engine works with basic trackers too | ✅ signals; P2 demo of a basic-only fleet |
 | GPS noise, dropouts, out-of-order and late readings | Exercises the "signal lost" path and out-of-order handling | P1 |
 | Mandatory rest stops / night halts | Separates planned stops from incidents | P2 |
 | Replay real trajectories through `/telemetry` | Most convincing evidence | P2 |
@@ -144,7 +145,7 @@
 |---|---|---|
 | Inference from machine signals: fault code → breakdown/flat tyre, crash sensor → accident, external label → weather/checkpoint, else unexplained stop | ✅ | — |
 | Unexplained-stop duration estimate (no signal needed) | ✅ | — |
-| **Dispatcher desk:** office staff see every stopped or silent truck and can override the incident type; the engine re-prices instantly | ✅ | — |
+| **Cause of stop control** (truck panel): office staff can correct the inferred incident type; the engine re-prices instantly | ✅ | — |
 | Geofence inference (toll plaza, checkpoint, depot, fuel station from OSM) | ⬜ | P1 |
 | Weather inference (Open-Meteo at the truck's location) | ⬜ | P1 |
 | Fleet-wide slowdown on the same road stretch → traffic | ⬜ | P2 |
@@ -168,9 +169,9 @@
 
 | Feature | Status | Priority |
 |---|---|---|
-| Adapter interface: inbound (orders, contracts, telemetry) and outbound (decision events) | ⬜ | **P0** |
-| **SAP-style TMS adapter (mock):** freight orders in → registry and contracts; decision events out via webhook | ⬜ | **P0** |
-| **Telematics adapter:** Traccar server (raw AIS-140 protocols) → `/telemetry` | ⬜ | **P0** |
+| Adapter interface: inbound telemetry (Traccar, HTTP `/telemetry`, `/trucks`) and outbound decision webhook (`DECISION_WEBHOOK_URL`); orders and contracts still from files | 🟡 | P1 |
+| **SAP-style TMS adapter (mock):** freight orders in → registry and contracts | ⬜ | P1 (pitched as next connector) |
+| **Telematics adapter:** Traccar server (200+ device protocols incl. AIS-140) → FleetFusion via JSON forwarding | ✅ | — |
 | Embeddable panel (`/embed`, no app chrome, token access) for host UIs | ⬜ | P1 |
 | Real SAP integration (Global Track & Trace / SAP TM APIs, BTP app) | ⬜ | P2 |
 | Telematics platform partner APIs (Fleetx / LocoNav / Intangles) | ⬜ | P2 |
@@ -182,19 +183,19 @@
 
 | Feature | Status | Priority |
 |---|---|---|
-| Plain-language explanations via local LLM (Ollama), async and cached, once per incident | 🟡 built, not yet run against a real model | **P0** (install Ollama and verify) |
+| Plain-language explanations via local LLM (Ollama), async and cached, once per incident | ✅ verified with llama3.2:3b (1b too unreliable); text that quotes figures or a choice the engine did not produce is dropped | — |
 | Deterministic fallback; runs with `LLM_ENABLED=false` | ✅ | — |
 | **"AI on/off" indicator and live toggle in the dashboard** (demo answer to "what if AI disappears") | ✅ | — |
 | Contract PDF → JSON extraction, with a human confirming | ⬜ | P1 |
 | Explanations cite the contract clause (retrieval over contract text with local embeddings) | ⬜ | P2 |
-| Check that numbers quoted by the LLM match the engine's numbers | ⬜ | P2 |
+| Check that numbers quoted by the LLM match the engine's numbers | ✅ | — |
 | Small model evaluation set | ⬜ | P3 |
 
 ### 4.6 Frontend / usability
 
 | Feature | Status | Priority |
 |---|---|---|
-| Live map, agent event stream, one-click execute popup | ✅ | — |
+| Brand-pack UI (Paper/Ink/Cobalt, Archivo + Plex Mono), incidents inbox sorted by action then ₹ at risk, truck panel with all options, map, activity log | ✅ | — |
 | Real KPIs in the header (on-time %, ₹ saved) | ✅ | — |
 | Clear "backend offline" banner; reconnect forever | ✅ | — |
 | Self-hosted fonts (no Google Fonts fetch; works offline) | ✅ | — |
@@ -202,11 +203,12 @@
 | **Popups keyed by incident** (a truck can raise a new popup for a new incident); dismissals recorded server-side | ✅ | — |
 | **All options in the popup**: wait vs each carrier with price, arrival, lateness, reliability, expected total cost | ✅ | — |
 | Impact panel (Analytics): savings, penalties avoided, money at risk, relief spend, extra CO₂, silent trackers | ✅ | — |
-| Opportunities list (all actionable trucks, not just the top one) | ⬜ | P1 |
+| Opportunities list (all actionable trucks, not just the top one) | ✅ incidents inbox | — |
 | Analytics on real data, with decision log and exports | ✅ | — |
 | Persist decision history across restarts (today: this session + `output/decisions.jsonl`) | ⬜ | P1 |
 | Public tracking page on live data | ⬜ | P2 |
 | Send routes once, then positions only (payload is ~0.6 MB/update at 1k trucks) | ⬜ | P1 |
+| Impact comparison with live assumption calculator (Analytics) | ✅ | — |
 | Rename `middleware.ts` → `proxy.ts` (Next 16 deprecation) | ⬜ | P3 |
 
 ### 4.7 Security, operations & compliance (product-worthiness)
@@ -215,6 +217,7 @@
 |---|---|---|
 | Open-redirect fix, dev-only auth secret, demo login gated in production | ✅ | — |
 | WebSocket origin allow-list (`WS_ALLOWED_ORIGINS`): blocks cross-site WebSocket hijacking from other pages in the browser | ✅ | — |
+| Each incident can be approved or dismissed once (no double booking from double clicks or two tabs) | ✅ | — |
 | **Authentication on the WebSocket and ingest** (signed session token on the WebSocket handshake for operator commands, API keys per device/org for ingest) | ⬜ | **P0** before any external deployment |
 | Roles: dispatcher, manager, admin; approval policy (auto-execute below ₹X, manager approval above) | ⬜ | P1 |
 | Real user store with hashed passwords | ⬜ | P1 |
@@ -235,12 +238,13 @@
 2. ~~Dispatcher override of the incident type~~ ✅
 3. ~~AI on/off indicator and toggle~~ ✅
 4. ~~Frontend: incident-keyed popups, all-options comparison, impact panel~~ ✅
-5. Adapter interface + mock SAP-style TMS adapter + Traccar telematics adapter
-6. Auth on WebSocket and ingest (before anything is exposed outside localhost)
+5. ~~Traccar telematics adapter, real-lane dataset, backend incident injection~~ ✅
+6. ~~Impact comparison, brand-pack UI~~ ✅
+7. Auth on WebSocket and ingest (before anything is exposed outside localhost)
 
 **P1: real data and usability**
-Own-fleet relief, vehicle compatibility, OSRM roads, geofences, weather, contract PDF extraction, embeddable panel,
-opportunities list, real analytics, route payload optimization, roles/approvals, outcome tracking, compose + CI.
+Mock SAP-style order adapter, own-fleet relief, vehicle compatibility, self-hosted OSRM, geofences, weather,
+contract PDF extraction, embeddable panel, route payload optimization, roles/approvals, outcome tracking, compose + CI.
 
 **P2: production**
 Persistence and Postgres, Kafka, real SAP / telematics partner integrations, booking and notifications, monitoring,

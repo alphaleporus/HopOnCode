@@ -179,4 +179,13 @@ Readability: inbox IDs don't wrap; moving-late trucks show "running X h behind";
 no emoji; status hysteresis (escalate after 5 s, de-escalate after 30 s: STATUS_DOWNGRADE_SECONDS).
 Machine note: the dev Mac (8 GB) swaps heavily with Ollama (2.4 GB) + Docker + dev servers → timeouts looked like
 "signal lost". Mitigations: tracker reports sent in parallel (no skip on failure), SIGNAL_LOST_SECONDS 90,
-tracker_offline incidents 60–120 sim-min. Recommend llama3.2:1b or closing apps on 8 GB machines.
+tracker_offline incidents 60–120 sim-min. Model: llama3.2:3b. Tested 5 runs each on a TRK-101 breakdown: 1b said "we recommend waiting" 5/5 (wrong),
+3b correct 5/5 (2–8 s). llm/explainer.py states the chosen option in the prompt and drops text whose ₹ figures
+aren't the engine's or that doesn't name the chosen carrier (numbers_match / matches_decision, tested).
+On 8 GB machines close other apps before demoing.
+
+## 12. Round 2 prep
+- Demo run order, fallbacks and likely questions: `docs/DEMO_CHECKLIST.md` (each step mapped to a round-1 judge point).
+- Decided: SAP/TMS adapter and auth are pitched as roadmap, not built. The outbound decision webhook already runs
+  in the demo (devices log "Relief accepted"), which shows the two-way plugin pattern.
+- Each incident can be approved/dismissed once (hub `_acted`); AI text dropped when it disagrees with the engine.

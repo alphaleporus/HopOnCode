@@ -310,26 +310,28 @@ echo "   • Backend:         ${YELLOW}logs/backend.log${NC}"
 echo "   • Frontend:        ${YELLOW}logs/frontend.log${NC}"
 echo ""
 print_info "Running Processes:"
-echo "   • Backend (Pathway + hub): PID $BACKEND_PID (feed: $FEED)"
+echo -e "   • Backend (Pathway + hub): PID $BACKEND_PID (feed: $FEED)"
 if [ "$FEED" = "traccar" ]; then
-echo "   • GPS trackers (simulated): PID $DEVICES_PID"
-echo "   • Traccar web map:         ${CYAN}http://localhost:8082${NC}"
-echo "   • Cause an incident:       ${CYAN}cd backend-pathway && venv-pathway/bin/python scripts/inject.py breakdown${NC}"
+echo -e "   • GPS trackers (simulated): PID $DEVICES_PID"
+echo -e "   • Traccar web map:         ${CYAN}http://localhost:8082${NC}"
 fi
-echo "   • Next.js Frontend:        PID $FRONTEND_PID"
+echo -e "   • Next.js Frontend:        PID $FRONTEND_PID"
 echo ""
-print_warning "Press ${RED}Ctrl+C${NC} to stop all services"
+print_warning "Keep this tab open. Ctrl+C here stops all services."
 echo ""
 
-print_header "Demo Instructions"
+print_header "Demo"
 echo ""
-echo "1. Open your browser and go to ${CYAN}http://localhost:3000${NC}"
-echo "2. Click 'Launch FleetFusion' to access the dashboard"
-echo "3. Watch the live map with real-time truck tracking"
-echo "4. Observe delay detection and arbitrage opportunities"
-echo "5. Check the Agent Stream for real-time events"
-echo ""
-echo "Enjoy the demo! 🚀"
+echo -e "1. Dashboard: ${CYAN}http://localhost:3000/dashboard${NC} (demo@fleetfusion.com / demo123)"
+if [ "$FEED" = "traccar" ]; then
+echo -e "2. In a second terminal tab, cause an incident from the backend:"
+echo -e "   ${CYAN}python3 backend-pathway/scripts/inject.py breakdown${NC}   (list | accident | flat_tyre | traffic | tracker_offline)"
+echo -e "3. About 10 s later the truck turns critical with a recommended fix. Approve it in the truck panel."
+echo -e "4. Impact & analytics: ${CYAN}http://localhost:3000/analytics${NC}"
+else
+echo -e "2. TRK-402 breaks down on its own after a few seconds; Breakdown / Reset buttons are in the top bar."
+echo -e "3. Impact & analytics: ${CYAN}http://localhost:3000/analytics${NC}"
+fi
 echo ""
 
 ################################################################################

@@ -12,7 +12,7 @@ dataset, impact, the 40 tests and the layout. Only these small fixes remain.
 | 5 | `06` Impact | Table header says "Per 100 trucks" but the first three rows are per incident | Rename the header (see B) |
 | 6 | `04` One incident | TRK-402 is the built-in simulator's scripted truck; the default Traccar demo has TRK-101–116 | Add a one-line caption (see C) |
 | 7 | — | No security note | Add one line (see D) |
-| 8 | Badge + `10` Layout | Tests are now 41 (double-approval guard added) | `tests-41%20passing`, `41 tests` |
+| 8 | Badge + `10` Layout | Tests are now 45 (double-approval guard, AI explanation checks) | `tests-45%20passing`, `45 tests` |
 
 ## A. `07` Run it (replace from "With Docker running…" to the end of the section)
 
@@ -36,8 +36,9 @@ Other types: `accident`, `flat_tyre`, `traffic`, `checkpoint`, `tracker_offline`
 Stop everything with `./cleanup-demo.sh`.
 
 **Optional AI explanations** (local, free): install [Ollama](https://ollama.com), run `ollama serve`, then
-`ollama pull llama3.2:1b` and set `LLM_MODEL=llama3.2:1b` in `backend-pathway/.env`. Machines with 16 GB+ can use
-`llama3.2:3b`. Without it, explanations are plain templates; decisions are identical.
+`ollama pull llama3.2:3b` (the default in `backend-pathway/.env`). Smaller models (1b) get the recommendation wrong
+too often, so their text is rejected and the engine's own summary is shown. Explanations whose figures or choice
+don't match the engine are always dropped; decisions are identical with AI on or off.
 ```
 
 ## B. `06` Impact table header
