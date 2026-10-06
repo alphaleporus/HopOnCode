@@ -23,6 +23,12 @@
 - **Demo / first integration: telematics.** AIS-140 trackers are mandatory on national-permit goods vehicles in
   India, so location data already exists on the trucks with no new hardware and no driver app.
 - **Pricing:** a fee per vehicle per month inside the host's marketplace or partner channel, or a share of the savings.
+- **Competitors / position:** FourKites, project44, Samsara and Indian telematics platforms answer "where is the truck
+  and when will it arrive". FleetFusion answers "what will this stop cost, and what is the cheapest recovery" on top of
+  their data (README section "How it compares").
+- **Grey market (judges, round 2):** most Indian trucking is small owners, brokers, cash deals and no formal contracts
+  or trackers. Strategy to be defined for the final round (see `docs/ROUND3_BRIEF.md`): brokers/aggregators as a
+  channel, phone-as-tracker, simple per-trip promises instead of contracts, without giving the driver a role.
 
 ---
 
@@ -134,6 +140,11 @@
 | **Signal-lost status** (tracker silent for `SIGNAL_LOST_SECONDS`), alert + "contact carrier dispatcher" | ✅ | — |
 | **Ignition on/off** signal (basic AIS-140 tier): engine on while stopped → idling in a queue | ✅ | — |
 | **Own idle trucks as relief options** (internal swap, zero market cost) | ⬜ | P1 |
+| **More recovery options** in the same cost + time + reliability model: mobile mechanic / roadside repair, transfer at the nearest hub, split load, renegotiate the delivery slot with the consignee, early customer notice (often reduces penalties) | ⬜ | P1 (pitch now: judges only pictured "send another truck") |
+| **Context-aware stop duration:** adjust typical duration and certainty by time of day, urban/rural, season, festivals and live weather. Today durations are fixed per cause (`core/incidents.py`) | ⬜ | P1 |
+| **Context-aware relief offers:** night surcharge, fewer carriers at night/festivals, longer rural pickup. Today offers are fixed per contract | ⬜ | P1 |
+| **Re-pricing when an offer changes or is refused** (e.g. relief driver asks ₹500 more at night, or rejects the duty): the model already re-scores any changed offer and falls to the next option; missing is a carrier-response input (API/dispatcher entry) | 🟡 | P1 |
+| **Carrier / truck rating learned from outcomes** (on-time pickups, refusals, surge demands) feeding each carrier's `reliability`. Rate carriers and trucks, not drivers | ⬜ | P1 |
 | Relief vehicle compatibility (reefer, capacity, permits) | ⬜ | P1 |
 | Reroute option for traffic/closures (moving trucks) | ⬜ | P2 |
 | Tiered penalty models: % of freight, OTIF windows, delivery slots | ⬜ | P2 |
@@ -148,6 +159,7 @@
 | **Cause of stop control** (truck panel): office staff can correct the inferred incident type; the engine re-prices instantly | ✅ | — |
 | Geofence inference (toll plaza, checkpoint, depot, fuel station from OSM) | ⬜ | P1 |
 | Weather inference (Open-Meteo at the truck's location) | ⬜ | P1 |
+| **Trucks without a tracker:** passive phone app as the tracker (log in once, background GPS, with consent under DPDP Act 2023; offers go to the carrier's dispatcher/owner, not the driver), or FASTag / e-way bill events via ULIP, or the carrier's existing GPS vendor | ⬜ | P2 (pitch now) |
 | Fleet-wide slowdown on the same road stretch → traffic | ⬜ | P2 |
 
 ### 4.3 Streaming platform & scale
@@ -170,7 +182,7 @@
 | Feature | Status | Priority |
 |---|---|---|
 | Adapter interface: inbound telemetry (Traccar, HTTP `/telemetry`, `/trucks`) and outbound decision webhook (`DECISION_WEBHOOK_URL`); orders and contracts still from files | 🟡 | P1 |
-| **SAP-style TMS adapter (mock):** freight orders in → registry and contracts | ⬜ | P1 (pitched as next connector) |
+| **SAP-style TMS adapter (mock):** freight orders in → registry and contracts | ⬜ | P1 (decided: not built for the hackathon; pitched as the next connector, same pattern as Traccar) |
 | **Telematics adapter:** Traccar server (200+ device protocols incl. AIS-140) → FleetFusion via JSON forwarding | ✅ | — |
 | Embeddable panel (`/embed`, no app chrome, token access) for host UIs | ⬜ | P1 |
 | Real SAP integration (Global Track & Trace / SAP TM APIs, BTP app) | ⬜ | P2 |
@@ -218,11 +230,12 @@
 | Open-redirect fix, dev-only auth secret, demo login gated in production | ✅ | — |
 | WebSocket origin allow-list (`WS_ALLOWED_ORIGINS`): blocks cross-site WebSocket hijacking from other pages in the browser | ✅ | — |
 | Each incident can be approved or dismissed once (no double booking from double clicks or two tabs) | ✅ | — |
-| **Authentication on the WebSocket and ingest** (signed session token on the WebSocket handshake for operator commands, API keys per device/org for ingest) | ⬜ | **P0** before any external deployment |
+| **Identity from the host system:** as an extension, users sign in through the host's single sign-on (SAP / TMS / company login via OIDC or SAML); FleetFusion accepts its signed token for operator commands. Decided: no own login system beyond the demo login | ⬜ | P1 before any pilot |
+| **API keys per device / organisation on ingest** (Traccar forwarding and `/telemetry`) | ⬜ | P1 before any pilot |
 | Roles: dispatcher, manager, admin; approval policy (auto-execute below ₹X, manager approval above) | ⬜ | P1 |
-| Real user store with hashed passwords | ⬜ | P1 |
+| Real user store with hashed passwords | ⬜ | Dropped (identity comes from the host system) |
 | TLS (WSS/HTTPS) via Caddy | ⬜ | P1 |
-| Track outcomes: predicted vs actual savings → calibration | ⬜ | P1 |
+| Track outcomes: predicted vs actual savings → calibration. This is also how the error rate is measured in a pilot (per incident type: cause right/wrong, duration error, relief delivered or not), instead of quoting a fixed %. | ⬜ | P1 |
 | Single `docker compose`: frontend, backend, Postgres, Traccar, Ollama, Caddy | ⬜ | P1 |
 | CI (GitHub Actions: pytest, lint, type-check, build) | ⬜ | P1 |
 | Monitoring: Prometheus metrics, structured logs, Sentry | ⬜ | P2 |
@@ -240,15 +253,18 @@
 4. ~~Frontend: incident-keyed popups, all-options comparison, impact panel~~ ✅
 5. ~~Traccar telematics adapter, real-lane dataset, backend incident injection~~ ✅
 6. ~~Impact comparison, brand-pack UI~~ ✅
-7. Auth on WebSocket and ingest (before anything is exposed outside localhost)
+7. ~~Demo hardening: approve-once, AI text checked against the engine, demo checklist~~ ✅
+8. Final-round preparation (no code): edge-case answer bank, recovery-options slide, business model and
+   go-to-market, grey-market strategy, failure cases and how errors are measured. Brief: `docs/ROUND3_BRIEF.md`.
 
 **P1: real data and usability**
-Mock SAP-style order adapter, own-fleet relief, vehicle compatibility, self-hosted OSRM, geofences, weather,
+More recovery options, context-aware durations and offers, carrier rating, re-pricing on refused offers,
+host-system sign-in + ingest API keys, mock SAP-style order adapter, own-fleet relief, vehicle compatibility, self-hosted OSRM, geofences, weather,
 contract PDF extraction, embeddable panel, route payload optimization, roles/approvals, outcome tracking, compose + CI.
 
 **P2: production**
 Persistence and Postgres, Kafka, real SAP / telematics partner integrations, booking and notifications, monitoring,
-DPDP compliance, reroute option, tiered penalties, simulator realism.
+DPDP compliance, reroute option, tiered penalties, simulator realism, phone-as-tracker for untracked trucks.
 
 **P3: later**
 ULIP (FASTag / Vahan / e-way bill), multi-stop trips, multi-tenancy, LLM evaluation set.

@@ -14,7 +14,9 @@ Origin: ported from our earlier Pathway hackathon project (github.com/alphalepor
 - **Zero driver dependency** (mentor feedback). Only office staff (dispatchers) may act.
 - **Works without AI** (mentor feedback). AI only explains; decisions are deterministic.
 - **Extension, not standalone SaaS** (mentor feedback): plug into SAP-style ERP/TMS + telematics.
-- README must be **plain language, no jargon**, with Mermaid diagrams.
+- README must be **plain language, no jargon**, with diagrams (now SVGs in `docs/assets/`, maintained by teammates).
+- **No Claude attribution in commits** (no `Co-Authored-By: Claude` trailers): the user wants Claude off the GitHub
+  contributors list. A Claude-credited brand-pack commit (9b5ce15) is preserved only in merged PR #1; `main` is clean.
 - Be honest about what is real vs illustrative; no fabricated stats on screen.
 
 ## 2. Architecture (current)
@@ -61,7 +63,7 @@ downgrade strong ones. Dispatcher override wins for that stop.
 - SAP Business Network Global Track & Trace accepts tracking data from any source (extension slot).
 - Contract penalty rates in demo are **illustrative**; relief prices anchored to real per-km rates.
 
-## 5. Demo state
+## 5. Demo state (built-in simulator, `FEED=internal` only; default is Traccar mode, see §9 and `docs/DEMO_CHECKLIST.md`)
 Scenario: TRK-402 stops T+5s → fault P0217 T+9s → critical, popup (₹38,282 at risk, saves ~₹22.5k).
 TRK-518 tracker silent T+25s → back T+90s. Demo buttons: Trigger breakdown (TRK-402 fault, then TRK-305 crash
 on vaccines → ₹14.1 L at risk, saves ~₹12.9 L), Reset (replays, keeps savings). `DEMO_CONTROLS=false` hides them.
@@ -79,7 +81,7 @@ machine-signal inference + dispatcher desk.
 5. **Trigger from the backend**, not the frontend: more realistic, functional, industry-ready.
 6. (Team's own) UI looks gimmicky / "college project"; needs an industry-ready, trustworthy feel.
 
-## 7. Agreed direction after judging round 1 (pending user answers)
+## 7. Direction proposed after judging round 1 (superseded by §9: mock host dropped, Traccar instead)
 P0:
 - **Realistic data feed, out of process:** a separate "mock telematics provider" that posts to the public
   `/telemetry` API (exactly like a real integration); larger fleet on real road routes (OSRM/OSM India),
@@ -95,8 +97,8 @@ P0:
   the primary view, map secondary; approval with audit.
 P1: verify Ollama end to end; auth on WS/ingest; persistence; OSRM self-host; geofences; weather.
 
-## 8. Open questions to the user (asked after judging round 1)
-See the chat; record answers here when received.
+## 8. Open questions after judging round 1
+Answered; see §9.
 
 ## 9. Answers after judging round 1 + progress (Traccar build)
 Answers: mock host dropped; integrate with a **real telematics platform** instead. Use an open dataset
@@ -163,7 +165,7 @@ Next: UI overhaul with the brand pack; verify Ollama explanations; README/PRODUC
   map re-measures on resize (ResizeObserver + invalidateSize); INR in marker popup; header shows network.
 - Inject → popup measured at ~11 s (stop at 5 s, fault + EXECUTE at 11 s).
 
-## 12. UI overhaul (in progress)
+## 12. UI overhaul (done)
 Done: brand system in app/globals.css (Paper/Ink/Cobalt/Mist/Signal/Clear + Alert #C2410C for critical,
 self-hosted Archivo + IBM Plex Mono via @fontsource, legacy classes glass-card/btn-* remapped to light surfaces,
 map tiles grayscale with no filters on marker/overlay panes). lib/status.ts = single status palette.
@@ -179,13 +181,47 @@ Readability: inbox IDs don't wrap; moving-late trucks show "running X h behind";
 no emoji; status hysteresis (escalate after 5 s, de-escalate after 30 s: STATUS_DOWNGRADE_SECONDS).
 Machine note: the dev Mac (8 GB) swaps heavily with Ollama (2.4 GB) + Docker + dev servers → timeouts looked like
 "signal lost". Mitigations: tracker reports sent in parallel (no skip on failure), SIGNAL_LOST_SECONDS 90,
-tracker_offline incidents 60–120 sim-min. Model: llama3.2:3b. Tested 5 runs each on a TRK-101 breakdown: 1b said "we recommend waiting" 5/5 (wrong),
-3b correct 5/5 (2–8 s). llm/explainer.py states the chosen option in the prompt and drops text whose ₹ figures
+tracker_offline incidents 60–120 sim-min. Model: llama3.2:3b recommended. Tested 5 runs each on a TRK-101 breakdown:
+1b said "we recommend waiting" 5/5 (wrong, all dropped by the check); 3b kept 4–5/5 (2–8 s). The user may run 1b
+for practice (lower memory); then the engine's own summary is shown instead of AI text. llm/explainer.py states the chosen option in the prompt and drops text whose ₹ figures
 aren't the engine's or that doesn't name the chosen carrier (numbers_match / matches_decision, tested).
 On 8 GB machines close other apps before demoing.
 
-## 12. Round 2 prep
+## 13. Round 2 prep
 - Demo run order, fallbacks and likely questions: `docs/DEMO_CHECKLIST.md` (each step mapped to a round-1 judge point).
 - Decided: SAP/TMS adapter and auth are pitched as roadmap, not built. The outbound decision webhook already runs
   in the demo (devices log "Relief accepted"), which shows the two-way plugin pattern.
 - Each incident can be approved/dismissed once (hub `_acted`); AI text dropped when it disagrees with the engine.
+
+## 14. Round 2 result and final-round plan
+Round 2 went well: all 9 checklist steps were shown. Judges' questions were about **feasibility, credibility and edge
+cases**; the **final round is about business prospects** (how we deploy, market and sell).
+
+Round 2 judge points:
+1. At night the relief driver asks ₹500 extra: what happens? → the offer's price changes, the model re-scores and falls
+   to the next option if the saving drops below the threshold (no carrier-response input yet: PRODUCT.md 4.1).
+2. A driver rejects a duty → that option fails; the next-best is offered (reliability already prices failure).
+3. Team said "we target the organised (white) market"; judges: reality is grey; keep grey/black market in mind.
+4. Judges only pictured "send a backup truck" → show other recovery options (mechanic, hub transfer, split load,
+   own idle truck, slot renegotiation, customer notice). All fit the cost + time + reliability model.
+5. Urban/rural, day/night and every other edge case need a prepared answer, plus failure cases.
+6. Truck without a tracker → team idea: passive phone app (log in once, background GPS); offers go to the carrier's
+   dispatcher/owner, not the driver (keeps the mentor's "no driver role"). Alternatives: FASTag/e-way bill via ULIP.
+Team ideas: carrier/truck credibility rating (feeds `reliability`; rate carriers and trucks, not drivers); an
+"error matrix". Advice given: don't quote an invented 10–15%; list what can be wrong, how each is bounded
+(confidence threshold, dispatcher override, expected-cost hedging) and measure it in a pilot.
+
+Gap found: **no context weighting**. Stop durations are fixed per cause (`core/incidents.py` INCIDENT_PROFILES),
+relief offers fixed per contract; weather only via a "weather" label + force majeure (`core/penalty.py`). No weather
+feed, time-of-day, urban/rural or festival logic. Hooks: duration/certainty in incidents.py, offers in arbitrage.
+
+Decisions:
+- **No own login system.** As an extension, identity comes from the host system's single sign-on; API keys on
+  ingest. Both pitched for "before a pilot", not built. Demo login stays.
+- **SAP/TMS mock adapter not built** (a mock would look fake, which judges disliked); pitched as next connector.
+- Final-round planning happens in a normal Claude chat using `docs/ROUND3_BRIEF.md` (self-contained brief: product,
+  what's built vs not, numbers, all feedback, team ideas, engineering opinions, P0–P2 asks). Execution returns here.
+
+Repo state: teammates applied the README fixes, added a "How it compares" section (FourKites, project44, Samsara;
+`docs/assets/comparison.svg`) and deleted `docs/README_CHANGES.md` (done). 45 backend tests.
+
