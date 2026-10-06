@@ -112,7 +112,27 @@ Other types: `accident`, `flat_tyre`, `traffic`, `checkpoint`, `tracker_offline`
 
 One process handles **3,000 truck readings per second** on a laptop (about 450 MB). Benchmark: `backend-pathway/scripts/benchmark.py`.
 
-## `10` Layout
+## `10` How it compares
+
+**They run the network. FleetFusion prices the stop.**
+
+FleetFusion is not a replacement for a fleet-management platform, TMS or shipment-visibility system like FourKites, project44 or Samsara. It is a financial decision layer on top of existing tracking data: it turns a vehicle disruption into an explainable rupee cost and compares recovery options.
+
+<img src="docs/assets/comparison.svg" width="100%" alt="Tracking data (Traccar or HTTP feeds) feeds fleet platforms, which answer where the vehicle is and when it arrives, and FleetFusion, which prices the stop and recommends the cheapest recovery. Example: Truck #42, 2h 47m disruption, option A wait, option B relief truck, option B recommended.">
+
+| | Fleet platforms | FleetFusion |
+|---|---|---|
+| `ASKS` | Where is the vehicle, and when will it arrive? | What will this disruption cost, and what is the cheapest recovery? |
+| `DECIDES BY` | ETAs, alerts, exception workflows | Rupee impact: waiting cost vs. recovery options |
+| `CONTRACTS` | Varies by platform | Penalties, caps, grace periods, cold-chain and force-majeure rules, applied deterministically in code |
+| `AI` | Can be central | Optional. Core calculations work with AI switched off |
+| `FITS IN` | Full platform | Consumes your existing tracker data (Traccar / HTTP) |
+
+> Keep the tracker. Add the financial decision layer.
+
+> FleetFusion is currently a prototype running on simulated data. Established platforms lead on carrier networks, multimodal visibility, enterprise integrations and production scale.
+
+## `11` Layout
 
 ```
 app/ components/ lib/        Dashboard and analytics (Next.js)
